@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "RF5BC2AFjI8=",
+  "success": true,
+  "projectFilePath": "E:\\BuyGuard\\server\\server.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Piotrek\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.6\\microsoft.aspnetcore.openapi.9.0.6.nupkg.sha512",
+    "C:\\Users\\Piotrek\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
