@@ -14,9 +14,6 @@ obj/
 # Rider IDE files
 .idea/
 
-# Properties folder (jeśli chcesz ignorować)
-Properties/
-
 # Dotnet generated files
 *.dotCover
 
