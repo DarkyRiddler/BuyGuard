@@ -9,7 +9,9 @@ public class User
     public string Email { get; set; }
     public string PasswordHash { get; set; }
     public string Role { get; set; } // "admin", "manager", "client"
+    public decimal ManagerLimitPln { get; set; }
 
-    public int ProjectId { get; set; }
-    public Project Project { get; set; }
+    public ICollection<Request> Requests { get; set; }
+    public ICollection<Request> ManagedRequests { get; set; }
+    public ICollection<Note> Notes { get; set; }
 }

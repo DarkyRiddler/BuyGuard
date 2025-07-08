@@ -8,8 +8,9 @@ public class ApplicationDbContext : DbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
 
-    public DbSet<Project> Project { get; set; }
     public DbSet<User> User { get; set; }
-    public DbSet<Issue> Issue { get; set; }
-    public DbSet<IssueMeta> IssueMeta { get; set; }
+    public DbSet<Request> Request { get; set; }
+    public DbSet<Attachment> Attachment { get; set; }
+    public DbSet<Note> Note { get; set; }
+
 }
