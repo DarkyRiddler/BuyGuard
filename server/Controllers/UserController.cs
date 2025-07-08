@@ -1,28 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
-using server.DTOs.User;
+using server.Data;
+using server.Models;
 
 namespace server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController : ControllerBase
+public class UserController : ControllerBase
 {
-    private readonly IUserService _userService;
-
-    public UsersController(IUserService userService)
+    private readonly ApplicationDbContext _db;
+    public UserController(ApplicationDbContext db)
     {
-        _userService = userService;
+        _db = db;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetUsers([FromQuery] UserQueryParameters parameters)
+    public IActionResult GetUsers()
     {
-        var userRole = User.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
-
-        if (userRole == null)
-            return Forbid();
-
-        var users = await _userService.GetUsersAsync(userRole, parameters);
-        return Ok(users);
+        return Ok(new { user = _db.User.ToList() });
     }
 }
