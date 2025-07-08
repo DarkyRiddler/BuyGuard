@@ -16,7 +16,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:3000")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -84,6 +85,22 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+// Testowy endpoint dla tokenu
+app.MapPost("/set-cookie", (HttpResponse response) =>
+{
+    var token = "abc.def.ghi"; // przykładowy JWT
+
+    response.Cookies.Append("jwt", token, new CookieOptions
+    {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Expires = DateTimeOffset.UtcNow.AddHours(1)
+    });
+
+    return Results.Ok(new { message = "JWT cookie set" });
+});
 
 app.MapControllers();
 
