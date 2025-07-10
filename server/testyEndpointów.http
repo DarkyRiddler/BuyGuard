@@ -1,1 +1,3 @@
-GET http://localhost:3000/api/Users
+GET http://localhost:5159/api/user?given_role_temporary=admin
+###
+GET http://localhost:5159/api/user?given_role_temporary=manager
