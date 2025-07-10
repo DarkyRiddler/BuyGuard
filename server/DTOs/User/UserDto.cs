@@ -1,6 +1,6 @@
 namespace server.DTOs.User;
 
-public class UserDto
+public record class UserDto
 {
     public string Role { get; set; }
     public string FirstName { get; set; }
