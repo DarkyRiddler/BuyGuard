@@ -1,3 +1,5 @@
-GET http://localhost:5159/api/user?given_role_temporary=admin
+GET http://localhost:5159/api/users?given_role_temporary=admin
 ###
-GET http://localhost:5159/api/user?given_role_temporary=manager
+GET http://localhost:5159/api/users?given_role_temporary=manager
+###
+GET http://localhost:5159/api/users/me?id_of_current_user_temporary=1
