@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-
+using server.DTOs.User;
 using server.Data;
 
 
@@ -123,7 +123,7 @@ public class UsersController : ControllerBase
         var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
         if (existingUser != null)
         {
-            return Conflict(new { message = "Mail zajęty!" });
+            return Conflict("Mail zajęty!");
         }
 
         string newUserRole;
@@ -134,7 +134,7 @@ public class UsersController : ControllerBase
             newUserRole = "manager";
             if (request.ManagerLimitPln == null)
             {
-                return BadRequest(new { message = "Potrzebne informacje - limit menadżera!" });
+                return BadRequest("Potrzebne informacje - limit menadżera!");
             }
             managerLimit = request.ManagerLimitPln;
         }
@@ -143,15 +143,15 @@ public class UsersController : ControllerBase
             newUserRole = "employee";
             if (request.ManagerLimitPln != null)
             {
-                return BadRequest(new { message = "Nie można ustawić limitu dla nowego użytkownika!" });
+                return BadRequest("Nie można ustawić limitu dla nowego użytkownika!");
             }
         }
         else
         {
-            return Forbid(new { message = "Tylko admin i menedżer mogą tworzyć użytkowników" });
+            return Forbid("Tylko admin i menedżer mogą tworzyć użytkowników");
         }
 
-        var user = new User
+        var newUser = new server.Models.User
         {
             FirstName = request.FirstName,
             LastName = request.LastName,
@@ -161,17 +161,17 @@ public class UsersController : ControllerBase
             ManagerLimitPln = managerLimit
         };
 
-        _db.User.Add(user);
+        _db.User.Add(newUser);
         _db.SaveChanges();
 
         var response = new
         {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Role = user.Role,
-            ManagerLimitPln = user.ManagerLimitPln
+            Id = newUser.Id,
+            FirstName = newUser.FirstName,
+            LastName = newUser.LastName,
+            Email = newUser.Email,
+            Role = newUser.Role,
+            ManagerLimitPln = newUser.ManagerLimitPln
         };
 
         return CreatedAtAction(nameof(GetUsers), response);
@@ -186,57 +186,57 @@ public class UsersController : ControllerBase
         if (currentUserRole == null)
             return Unauthorized();
 
-        var user = _db.User.FirstOrDefault(u => u.Id == id);
+        var userToUpdate = _db.User.FirstOrDefault(u => u.Id == id);
         
-        if (user == null)
-            return NotFound(new { message = "Użytknownik not found!" });
+        if (userToUpdate == null)
+            return NotFound("Użytknownik not found!");
         
-        if (currentUserRole == "admin" && user.Role != "manager")
+        if (currentUserRole == "admin" && userToUpdate.Role != "manager")
         {
-            return Forbid(new { message = "Admin może edytować tylko menedżerów" });
+            return Forbid("Admin może edytować tylko menedżerów");
         }
-        else if (currentUserRole == "manager" && user.Role != "employee")
+        else if (currentUserRole == "manager" && userToUpdate.Role != "employee")
         {
-            return Forbid(new { message = "Menedżer może edytować tylko pracowników" });
+            return Forbid("Menedżer może edytować tylko pracowników");
         }
         else if (currentUserRole != "admin" && currentUserRole != "manager")
         {
-            return Forbid(new { message = "Tylko admin i menedżer mogą edytować użytkowników" });
+            return Forbid("Tylko admin i menedżer mogą edytować użytkowników");
         }
         
         if (!string.IsNullOrEmpty(request.FirstName))
         {
-            user.FirstName = request.FirstName;
+            userToUpdate.FirstName = request.FirstName;
         }
 
         if (!string.IsNullOrEmpty(request.LastName))
         {
-            user.LastName = request.LastName;
+            userToUpdate.LastName = request.LastName;
         }
 
         if (!string.IsNullOrEmpty(request.Password))
         {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            userToUpdate.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
         }
         
         if (currentUserRole == "admin" && request.ManagerLimitPln.HasValue)
         {
-            user.ManagerLimitPln = request.ManagerLimitPln;
+            userToUpdate.ManagerLimitPln = request.ManagerLimitPln;
         }
 
         _db.SaveChanges();
 
         var response = new
         {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            Role = user.Role,
-            ManagerLimitPln = user.ManagerLimitPln
+            Id = userToUpdate.Id,
+            FirstName = userToUpdate.FirstName,
+            LastName = userToUpdate.LastName,
+            Email = userToUpdate.Email,
+            Role = userToUpdate.Role,
+            ManagerLimitPln = userToUpdate.ManagerLimitPln
         };
 
         return Ok(response);
     }
-    
+   
 }

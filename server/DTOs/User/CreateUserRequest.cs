@@ -1,4 +1,4 @@
-﻿namespace server.DTOs.UserRequest;
+﻿namespace server.DTOs.User;
 
 public class CreateUserRequest
 {
