@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using server.Data;
-using server.DTOs.User;
+
 
 namespace server.Controllers;
 
@@ -37,7 +37,7 @@ public class UsersController : ControllerBase
         if (given_role_temporary == "manager")
         {
             var users = _db.User
-                .Where(u => u.Role == "client")
+                .Where(u => u.Role == "employee")
                 .Select(u => new
                 {
                     Role = u.Role,
@@ -71,6 +71,12 @@ public class UsersController : ControllerBase
         }
         return Ok(new { user = user });
     }
-    
-    
+
+    // delete usera po id
+    /*
+    [HttpDelete("{id}")]
+    public IActionResult DeleteUser(int id)
+    {
+            
+    }*/
 }
