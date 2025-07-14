@@ -10,18 +10,10 @@ namespace server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "Description",
-                table: "Request",
-                type: "text",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<double>(
+            migrationBuilder.AlterColumn<decimal>(
                 name: "AiScore",
                 table: "Request",
-                type: "double precision",
+                type: "numeric",
                 nullable: true,
                 oldClrType: typeof(double),
                 oldType: "double precision");
@@ -30,24 +22,14 @@ namespace server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<string>(
-                name: "Description",
-                table: "Request",
-                type: "text",
-                nullable: false,
-                defaultValue: "",
-                oldClrType: typeof(string),
-                oldType: "text",
-                oldNullable: true);
-
             migrationBuilder.AlterColumn<double>(
                 name: "AiScore",
                 table: "Request",
                 type: "double precision",
                 nullable: false,
                 defaultValue: 0.0,
-                oldClrType: typeof(double),
-                oldType: "double precision",
+                oldClrType: typeof(decimal),
+                oldType: "numeric",
                 oldNullable: true);
         }
     }

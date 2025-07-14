@@ -12,7 +12,7 @@ using server.Data;
 namespace server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250714090305_AtrybutyPol")]
+    [Migration("20250714110958_AtrybutyPol")]
     partial class AtrybutyPol
     {
         /// <inheritdoc />
@@ -89,8 +89,8 @@ namespace server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<double?>("AiScore")
-                        .HasColumnType("double precision");
+                    b.Property<decimal?>("AiScore")
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("AmountPln")
                         .HasColumnType("numeric");
@@ -99,6 +99,7 @@ namespace server.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ManagerId")
