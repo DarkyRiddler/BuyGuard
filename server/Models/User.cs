@@ -10,7 +10,7 @@ public class User
     public string PasswordHash { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public string Role { get; set; } // "admin", "manager", "client", ewemtualnie "CEO"
+    public string Role { get; set; } = "Manager"; // "admin", "manager", "client", ewemtualnie "CEO"
     public decimal? ManagerLimitPln { get; set; }
     public ICollection<Request> Requests { get; set; }
     public ICollection<Request> ManagedRequests { get; set; }
