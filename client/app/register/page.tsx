@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff } from 'lucide-react';
+import axios from '@/lib/utils';
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
@@ -55,8 +56,9 @@ export default function InputForm() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log('Form submitted:', data);
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { confirmPassword, ...sanitizedData } = data;
     toast('You submitted the following values', {
       description: (
         <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
@@ -64,10 +66,17 @@ export default function InputForm() {
         </pre>
       ),
     });
+    
+    try {
+      const res = await axios.post('/Users', sanitizedData);
+      console.log('Response from server:', res);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);``
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -127,7 +136,7 @@ export default function InputForm() {
                       onClick={() => setShowPassword((prev) => !prev)}
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-500"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
                     </button>
                   </div>
                 </FormControl>
@@ -149,7 +158,7 @@ export default function InputForm() {
                       onClick={() => setShowConfirmPassword((prev) => !prev)}
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-500"
                     >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
                     </button>
                   </div>
                 </FormControl>
