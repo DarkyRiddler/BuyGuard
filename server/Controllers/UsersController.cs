@@ -111,4 +111,132 @@ public class UsersController : ControllerBase
         
         return Ok(new List<object>());
     }
+    [Authorize]
+    [HttpPost]
+    public IActionResult CreateUser([FromBody] CreateUserRequest request)
+    {
+        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        
+        if (currentUserRole == null)
+            return Unauthorized();
+        
+        var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
+        if (existingUser != null)
+        {
+            return Conflict(new { message = "Mail zajęty!" });
+        }
+
+        string newUserRole;
+        decimal? managerLimit = null;
+        
+        if (currentUserRole == "admin")
+        {
+            newUserRole = "manager";
+            if (request.ManagerLimitPln == null)
+            {
+                return BadRequest(new { message = "Potrzebne informacje - limit menadżera!" });
+            }
+            managerLimit = request.ManagerLimitPln;
+        }
+        else if (currentUserRole == "manager")
+        {
+            newUserRole = "employee";
+            if (request.ManagerLimitPln != null)
+            {
+                return BadRequest(new { message = "Nie można ustawić limitu dla nowego użytkownika!" });
+            }
+        }
+        else
+        {
+            return Forbid(new { message = "Tylko admin i menedżer mogą tworzyć użytkowników" });
+        }
+
+        var user = new User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = newUserRole,
+            ManagerLimitPln = managerLimit
+        };
+
+        _db.User.Add(user);
+        _db.SaveChanges();
+
+        var response = new
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role,
+            ManagerLimitPln = user.ManagerLimitPln
+        };
+
+        return CreatedAtAction(nameof(GetUsers), response);
+    }
+
+    [Authorize]
+    [HttpPatch("{id}")]
+    public IActionResult UpdateUser(int id, [FromBody] UpdateUserRequest request)
+    {
+        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        
+        if (currentUserRole == null)
+            return Unauthorized();
+
+        var user = _db.User.FirstOrDefault(u => u.Id == id);
+        
+        if (user == null)
+            return NotFound(new { message = "Użytknownik not found!" });
+        
+        if (currentUserRole == "admin" && user.Role != "manager")
+        {
+            return Forbid(new { message = "Admin może edytować tylko menedżerów" });
+        }
+        else if (currentUserRole == "manager" && user.Role != "employee")
+        {
+            return Forbid(new { message = "Menedżer może edytować tylko pracowników" });
+        }
+        else if (currentUserRole != "admin" && currentUserRole != "manager")
+        {
+            return Forbid(new { message = "Tylko admin i menedżer mogą edytować użytkowników" });
+        }
+        
+        if (!string.IsNullOrEmpty(request.FirstName))
+        {
+            user.FirstName = request.FirstName;
+        }
+
+        if (!string.IsNullOrEmpty(request.LastName))
+        {
+            user.LastName = request.LastName;
+        }
+
+        if (!string.IsNullOrEmpty(request.Password))
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        }
+        
+        if (currentUserRole == "admin" && request.ManagerLimitPln.HasValue)
+        {
+            user.ManagerLimitPln = request.ManagerLimitPln;
+        }
+
+        _db.SaveChanges();
+
+        var response = new
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role,
+            ManagerLimitPln = user.ManagerLimitPln
+        };
+
+        return Ok(response);
+    }
+    
 }
