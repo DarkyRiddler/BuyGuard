@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
+=======
+>>>>>>> b236d3fc7906b2324317a637b1a8d691951c7a5c
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
