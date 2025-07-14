@@ -1,10 +1,14 @@
-GET http://localhost:5159/api/users?given_role_temporary=admin
-###
-GET http://localhost:5159/api/users?given_role_temporary=manager
-###
-GET http://localhost:5159/api/users/me?id_of_current_user_temporary=3
-###
+GET http://localhost:5159/api/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJkd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJtYW5hZ2VyIiwiZXhwIjoxNzUyNTE2MDE5fQ.5fgiWtew0pu0cScN2TQiKOPMCscs4_j2JVl7sBfcyss
 
+###
+GET http://localhost:5159/api/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJwc3p5Ymlha0BnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc1MjUxNTgyMH0.jWNgooMw5IOipx26bfLQu-NqiNxlTBxxymf-4SUnZK8
+
+###
+GET http://localhost:5159/api/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJlbXBsb3llZSIsImV4cCI6MTc1MjUxNDUzMn0.oo_L54bF85JwHWvWsE9GYQWlxzYVNy4B5McFK8QtxuE
+###
 POST http://localhost:5159/auth/login
 Content-Type: application/json
 
@@ -12,3 +16,21 @@ Content-Type: application/json
   "Email": "mwisniowski@gmail.com",
   "Password": "1234567890"
 }
+###
+POST http://localhost:5159/auth/login
+Content-Type: application/json
+
+{
+  "Email": "pszybiak@gmail.com",
+  "Password": "sigma"
+}
+###
+POST http://localhost:5159/auth/login
+Content-Type: application/json
+
+{
+  "Email": "dwisniowski@gmail.com",
+  "Password": "sigma"
+}
+###
+DELETE http://localhost:5159/api/users/3
