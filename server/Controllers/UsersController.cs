@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-
+using server.DTOs.User;
 using server.Data;
 
 
@@ -111,4 +111,132 @@ public class UsersController : ControllerBase
         
         return Ok(new List<object>());
     }
+    [Authorize]
+    [HttpPost]
+    public IActionResult CreateUser([FromBody] CreateUserRequest request)
+    {
+        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        
+        if (currentUserRole == null)
+            return Unauthorized();
+        
+        var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
+        if (existingUser != null)
+        {
+            return Conflict("Mail zajęty!");
+        }
+
+        string newUserRole;
+        decimal? managerLimit = null;
+        
+        if (currentUserRole == "admin")
+        {
+            newUserRole = "manager";
+            if (request.ManagerLimitPln == null)
+            {
+                return BadRequest("Potrzebne informacje - limit menadżera!");
+            }
+            managerLimit = request.ManagerLimitPln;
+        }
+        else if (currentUserRole == "manager")
+        {
+            newUserRole = "employee";
+            if (request.ManagerLimitPln != null)
+            {
+                return BadRequest("Nie można ustawić limitu dla nowego użytkownika!");
+            }
+        }
+        else
+        {
+            return Forbid("Tylko admin i menedżer mogą tworzyć użytkowników");
+        }
+
+        var newUser = new server.Models.User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = newUserRole,
+            ManagerLimitPln = managerLimit
+        };
+
+        _db.User.Add(newUser);
+        _db.SaveChanges();
+
+        var response = new
+        {
+            Id = newUser.Id,
+            FirstName = newUser.FirstName,
+            LastName = newUser.LastName,
+            Email = newUser.Email,
+            Role = newUser.Role,
+            ManagerLimitPln = newUser.ManagerLimitPln
+        };
+
+        return CreatedAtAction(nameof(GetUsers), response);
+    }
+
+    [Authorize]
+    [HttpPatch("{id}")]
+    public IActionResult UpdateUser(int id, [FromBody] UpdateUserRequest request)
+    {
+        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        
+        if (currentUserRole == null)
+            return Unauthorized();
+
+        var userToUpdate = _db.User.FirstOrDefault(u => u.Id == id);
+        
+        if (userToUpdate == null)
+            return NotFound("Użytknownik not found!");
+        
+        if (currentUserRole == "admin" && userToUpdate.Role != "manager")
+        {
+            return Forbid("Admin może edytować tylko menedżerów");
+        }
+        else if (currentUserRole == "manager" && userToUpdate.Role != "employee")
+        {
+            return Forbid("Menedżer może edytować tylko pracowników");
+        }
+        else if (currentUserRole != "admin" && currentUserRole != "manager")
+        {
+            return Forbid("Tylko admin i menedżer mogą edytować użytkowników");
+        }
+        
+        if (!string.IsNullOrEmpty(request.FirstName))
+        {
+            userToUpdate.FirstName = request.FirstName;
+        }
+
+        if (!string.IsNullOrEmpty(request.LastName))
+        {
+            userToUpdate.LastName = request.LastName;
+        }
+
+        if (!string.IsNullOrEmpty(request.Password))
+        {
+            userToUpdate.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        }
+        
+        if (currentUserRole == "admin" && request.ManagerLimitPln.HasValue)
+        {
+            userToUpdate.ManagerLimitPln = request.ManagerLimitPln;
+        }
+
+        _db.SaveChanges();
+
+        var response = new
+        {
+            Id = userToUpdate.Id,
+            FirstName = userToUpdate.FirstName,
+            LastName = userToUpdate.LastName,
+            Email = userToUpdate.Email,
+            Role = userToUpdate.Role,
+            ManagerLimitPln = userToUpdate.ManagerLimitPln
+        };
+
+        return Ok(response);
+    }
+   
 }
