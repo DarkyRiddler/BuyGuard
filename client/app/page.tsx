@@ -118,7 +118,8 @@ export default function Home() {
       <h1>Dane z backendu:</h1>
       <pre>{JSON.stringify(data, null, 2)}</pre>
       <a href="/register">rejerstracjasa</a><br/>
-      <a href="/login">login</a>
+      <a href="/login">login</a><br/>
+      <a href="/edituser">edycja</a>
     </div>
   );
 }
