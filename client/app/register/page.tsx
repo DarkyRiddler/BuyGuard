@@ -68,7 +68,7 @@ export default function InputForm() {
     });
     
     try {
-      const res = await axios.post('/Users', sanitizedData);
+      const res = await axios.post('api/Users', sanitizedData);
       console.log('Response from server:', res);
     } catch (error) {
       console.error(error);

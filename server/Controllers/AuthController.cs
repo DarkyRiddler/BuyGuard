@@ -46,7 +46,18 @@ public class AuthController : ControllerBase
         }
 
         var token = GenerateJwtToken(user);
-        return Ok(new { token });
+        
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddHours(1)
+        };
+
+        Response.Cookies.Append("jwt", token, cookieOptions);
+
+        return Ok(new { message = "Zalogowano pomyślnie" });
     }
 
     private string GenerateJwtToken(User user)
