@@ -86,22 +86,6 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
-// Testowy endpoint dla tokenu
-app.MapPost("/set-cookie", (HttpResponse response) =>
-{
-    var token = "abc.def.ghi"; // przykładowy JWT
-
-    response.Cookies.Append("jwt", token, new CookieOptions
-    {
-        HttpOnly = true,
-        Secure = true,
-        SameSite = SameSiteMode.None,
-        Expires = DateTimeOffset.UtcNow.AddHours(1)
-    });
-
-    return Results.Ok(new { message = "JWT cookie set" });
-});
-
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
