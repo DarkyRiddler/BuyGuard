@@ -103,6 +103,7 @@
 // }
 "use client";
 import { useEffect, useState } from 'react';
+import DeleteButton from '@/components/buttons/deleteuser';
 
 export default function Home() {
   const [data, setData] = useState(null);
@@ -119,7 +120,8 @@ export default function Home() {
       <pre>{JSON.stringify(data, null, 2)}</pre>
       <a href="/register">rejerstracjasa</a><br/>
       <a href="/login">login</a><br/>
-      <a href="/edituser">edycja</a>
+      <a href="/edituser">edycja</a><br/>
+      <DeleteButton/>
     </div>
   );
 }
