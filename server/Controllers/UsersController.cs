@@ -21,8 +21,8 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    // TODO Zmienić given_role_temporary na faktyczną zmienną po zrobieniu logowania
-    public IActionResult GetUsers() // jak odczytać role jak jeszcze nie ma logowania idk 
+
+    public IActionResult GetUsers() 
     {
         var given_role = User.FindFirstValue(ClaimTypes.Role);
         if (given_role == null) return Unauthorized();
