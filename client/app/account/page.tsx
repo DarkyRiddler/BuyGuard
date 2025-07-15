@@ -8,8 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { User } from '@/types';
-import { Button } from '@/components/ui/button';
-import ResetPasswordDialog from '@/components/ResetPasswordDialog';
+import ResetPasswordDialog from '@/components/reset-password-dialog';
 
 export default async function Account() {
   const cookieStore = await cookies();
