@@ -35,8 +35,6 @@ export default async function Account() {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log('User data:', data);
-    
     const user: User = data.user;
     
     return (
