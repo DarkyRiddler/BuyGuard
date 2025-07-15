@@ -103,6 +103,7 @@
 // }
 "use client";
 import { useEffect, useState } from 'react';
+import { DarkModeToggle } from '@/components/dark-mode-toggle';
 
 export default function Home() {
   const [data, setData] = useState(null);
@@ -119,6 +120,7 @@ export default function Home() {
       <pre>{JSON.stringify(data, null, 2)}</pre>
       <a href="/register">rejerstracjasa</a><br/>
       <a href="/login">login</a>
+      <DarkModeToggle />
     </div>
   );
 }
