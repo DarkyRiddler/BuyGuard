@@ -28,5 +28,10 @@ public class ApplicationDbContext : DbContext
             .WithMany(u => u.ManagedRequests)
             .HasForeignKey(r => r.ManagerId)
             .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Manager)
+            .WithMany(m => m.Subordinates)
+            .HasForeignKey(u => u.ManagerId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
