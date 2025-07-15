@@ -29,12 +29,11 @@ export default function RootLayout({
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-    <ThemeProvider>
-      <Toaster/>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <Toaster />
       {children}
     </ThemeProvider>
     </body>
     </html>
-  )
-    ;
+  );
 }
