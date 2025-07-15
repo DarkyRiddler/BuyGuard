@@ -103,6 +103,7 @@
 // }
 "use client";
 import { useEffect, useState } from 'react';
+import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import DeleteButton from '@/components/buttons/deleteuser';
 
 export default function Home() {
@@ -119,7 +120,8 @@ export default function Home() {
       <h1>Dane z backendu:</h1>
       <pre>{JSON.stringify(data, null, 2)}</pre>
       <a href="/register">rejerstracjasa</a><br/>
-      <a href="/login">login</a><br/>
+      <a href="/login">login</a>
+      <DarkModeToggle />
       <a href="/edituser">edycja</a><br/>
       <DeleteButton/>
     </div>
