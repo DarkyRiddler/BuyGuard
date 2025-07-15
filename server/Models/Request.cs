@@ -16,7 +16,7 @@ public class Request
     public required string Description { get; set; }
     public decimal AmountPln { get; set; }
     public required string Reason { get; set; }
-    public required string Status { get; set; }
+    public required string Status { get; set; } = "czeka"; // czeka, potwierdzono, odrzucono, zakupione.
     public decimal? AiScore { get; set; }
 
     public required DateTime CreatedAt { get; set; }

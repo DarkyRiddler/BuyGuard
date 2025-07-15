@@ -11,6 +11,7 @@ obj/
 # Visual Studio Code settings
 .vscode/
 
+.http
 # Rider IDE files
 .idea/
 
