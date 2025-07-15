@@ -104,6 +104,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
+import DeleteButton from '@/components/buttons/deleteuser';
 
 export default function Home() {
   const [data, setData] = useState(null);
@@ -121,6 +122,8 @@ export default function Home() {
       <a href="/register">rejerstracjasa</a><br/>
       <a href="/login">login</a>
       <DarkModeToggle />
+      <a href="/edituser">edycja</a><br/>
+      <DeleteButton/>
     </div>
   );
 }

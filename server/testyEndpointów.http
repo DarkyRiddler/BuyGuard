@@ -1,14 +1,15 @@
+### get userów ze strony manegera DZIAŁA
 GET http://localhost:5159/api/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJkd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJtYW5hZ2VyIiwiZXhwIjoxNzUyNTE2MDE5fQ.5fgiWtew0pu0cScN2TQiKOPMCscs4_j2JVl7sBfcyss
 
-###
+### get listy ze strony admina DZIAŁA
 GET http://localhost:5159/api/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJwc3p5Ymlha0BnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc1MjUxNTgyMH0.jWNgooMw5IOipx26bfLQu-NqiNxlTBxxymf-4SUnZK8
 
-###
+### get employee DZIAŁA
 GET http://localhost:5159/api/users/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJlbXBsb3llZSIsImV4cCI6MTc1MjUxNDUzMn0.oo_L54bF85JwHWvWsE9GYQWlxzYVNy4B5McFK8QtxuE
-###
+### login - employee DZIAŁA
 POST http://localhost:5159/auth/login
 Content-Type: application/json
 
@@ -16,7 +17,7 @@ Content-Type: application/json
   "Email": "mwisniowski@gmail.com",
   "Password": "1234567890"
 }
-###
+### login - admin  DZIAŁA
 POST http://localhost:5159/auth/login
 Content-Type: application/json
 
@@ -24,13 +25,47 @@ Content-Type: application/json
   "Email": "pszybiak@gmail.com",
   "Password": "sigma"
 }
-###
+###  DZIAŁA
 POST http://localhost:5159/auth/login
 Content-Type: application/json
 
 {
-  "Email": "dwisniowski@gmail.com",
-  "Password": "sigma"
+  "Email": "kochamtencze123@gmail.com",
+  "Password": "Tusk"
 }
-###
+### delete usera ze strony admina DZIAŁA
 DELETE http://localhost:5159/api/users/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJwc3p5Ymlha0BnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc1MjUxNTgyMH0.jWNgooMw5IOipx26bfLQu-NqiNxlTBxxymf-4SUnZK8
+### patch manegera ze strony admina DZIAŁA
+PATCH  http://localhost:5159/api/users/15
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJkd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJtYW5hZ2VyIiwiZXhwIjoxNzUyNTY5NDI0fQ.JnbvVn8X0R2uoLY1q_R9wVFpNnDqb0yp-k1BPm4YHoQ
+Content-Type: application/json
+
+{
+  "FirstName": "Sigma",
+  "LastName": "SigmowskiEmployee",
+  "Password": "Sigma",
+  "ManagerLimitPln": 25000
+}
+### create usera ze strony managera i admina DZIAŁA
+POST  http://localhost:5159/api/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIwIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoicHN6eWJpYWtAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJleHAiOjE3NTI1NzQ5MTR9.y5Wh-ezx6y18B8yMaTP3nWzg246Vtcl5UmyK92Cmzak
+Content-Type: application/json
+
+{
+  "FirstName": "Rafal",
+  "LastName": "Trzaskowski",
+  "Email": "kochamtencze123@gmail.com",
+  "Password": "Tusk",
+  "ManagerLimitPln": 200000
+}
+### DZIAŁA
+PATCH http://localhost:5159/auth/change-password
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjM2IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoia29jaGFtdGVuY3plMTIzQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6Im1hbmFnZXIiLCJleHAiOjE3NTI1NzQ5Mzh9.mB_ex19NYKoxDQrYEuxEKOERto4c7ChepMmRY0WnpmU
+Content-Type: application/json
+
+{
+  "CurrentPassword": "Tusk123!",
+  "NewPassword": "Tusk123!",
+  "ConfirmNewPassword": "Tusk123!"
+}

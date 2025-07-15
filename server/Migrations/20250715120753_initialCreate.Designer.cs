@@ -12,8 +12,8 @@ using server.Data;
 namespace server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250714130329_AutoFix")]
-    partial class AutoFix
+    [Migration("20250715120753_initialCreate")]
+    partial class initialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -152,6 +152,9 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("ManagerId")
+                        .HasColumnType("integer");
+
                     b.Property<decimal?>("ManagerLimitPln")
                         .HasColumnType("numeric");
 
@@ -164,6 +167,8 @@ namespace server.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ManagerId");
 
                     b.ToTable("User");
                 });
@@ -217,6 +222,16 @@ namespace server.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("server.Models.User", b =>
+                {
+                    b.HasOne("server.Models.User", "Manager")
+                        .WithMany("Subordinates")
+                        .HasForeignKey("ManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Manager");
+                });
+
             modelBuilder.Entity("server.Models.Request", b =>
                 {
                     b.Navigation("Attachments");
@@ -231,6 +246,8 @@ namespace server.Migrations
                     b.Navigation("Notes");
 
                     b.Navigation("Requests");
+
+                    b.Navigation("Subordinates");
                 });
 #pragma warning restore 612, 618
         }
