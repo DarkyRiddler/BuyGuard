@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 using server.Data;
-
+using server.Models;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -17,16 +17,18 @@ public class RequestsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetRequests()
+    public IActionResult GetRequests([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
-
         if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
             return Unauthorized();
+
+        IQueryable<object> requestsQuery;
+
         if (userRole == "admin")
         {
-            var requests = _db.Request
+            requestsQuery = _db.Request
                 .Select(r => new
                 {
                     id = r.Id,
@@ -41,12 +43,11 @@ public class RequestsController : ControllerBase
                     status = r.Status,
                     createdAt = r.CreatedAt,
                     updatedAt = r.UpdatedAt,
-                }).ToList();
-            return Ok(new { request = requests });
+                });
         }
         else if (userRole == "manager")
         {
-            var requests = _db.Request
+            requestsQuery = _db.Request
                 .Where(r => r.ManagerId == clientId)
                 .Select(r => new
                 {
@@ -62,12 +63,11 @@ public class RequestsController : ControllerBase
                     status = r.Status,
                     createdAt = r.CreatedAt,
                     updatedAt = r.UpdatedAt,
-                }).ToList();
-            return Ok(new { user = requests });
+                });
         }
         else if (userRole == "employee")
         {
-            var requests = _db.Request
+            requestsQuery = _db.Request
                 .Where(r => r.UserId == clientId)
                 .Select(r => new
                 {
@@ -83,10 +83,33 @@ public class RequestsController : ControllerBase
                     status = r.Status,
                     createdAt = r.CreatedAt,
                     updatedAt = r.UpdatedAt,
-                }).ToList();
-            return Ok(new { user = requests });
+                });
         }
-        return Ok(new List<object>());
+        else
+        {
+            return Ok(new
+            {
+                request = new List<object>(),
+                totalPages = 0,
+                currentPage = page,
+                totalRequests = 0
+            });
+        }
+
+        var totalRequests = requestsQuery.Count();
+        var totalPages = (int)Math.Ceiling((double)totalRequests / pageSize);
+        var pagedRequests = requestsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Ok(new
+        {
+            request = pagedRequests,
+            totalPages = totalPages,
+            currentPage = page,
+            totalRequests = totalRequests
+        });
     }
     [HttpGet("{id}")]
     public IActionResult GetSpecificRequest(int id)
