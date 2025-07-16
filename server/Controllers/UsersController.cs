@@ -21,8 +21,67 @@ public class UsersController : ControllerBase
 
     [Authorize]
     [HttpGet]
+    public IActionResult GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var given_role = User.FindFirstValue(ClaimTypes.Role);
+        if (given_role == null) return Unauthorized();
+        IQueryable<object> usersQuery;
+        if (given_role == "admin")
+        {
+            usersQuery = _db.User
+                .Where(u => u.Role == "manager")
+                .Select(u => new
+                {
+                    Id = u.Id,
+                    Role = u.Role,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                    ManagerLimitPln = u.ManagerLimitPln
+                });
+        }
+        else if (given_role == "manager")
+        {
+            usersQuery = _db.User
+                .Where(u => u.Role == "employee")
+                .Select(u => new
+                {
+                    Id = u.Id,
+                    Role = u.Role,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email,
+                    ManagerLimitPln = (decimal?)null
+                });
+        }
+        else
+        {
+            return Ok(new
+            {
+                user = new List<object>(),
+                totalPages = 0,
+                currentPage = page,
+                totalUsers = 0
+            });
+        }
 
-    public IActionResult GetUsers() 
+        var totalUsers = usersQuery.Count();
+        var totalPages = (int)Math.Ceiling((double)totalUsers / pageSize);
+        var users = usersQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        return Ok(new
+        {
+            user = users,
+            totalPages = totalPages,
+            currentPage = page,
+            totalUsers = totalUsers
+        });
+    }
+    /*
+     stare bez paginacji - mozna usunac jbc
+     public IActionResult GetUsers() 
     {
         var given_role = User.FindFirstValue(ClaimTypes.Role);
         if (given_role == null) return Unauthorized();
@@ -57,7 +116,7 @@ public class UsersController : ControllerBase
             return Ok(new { user = users });
         }
         return Ok(new List<object>());
-    }
+    }*/
     
     [Authorize]
     [HttpGet("me")]
