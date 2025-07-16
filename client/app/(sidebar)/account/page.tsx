@@ -11,6 +11,7 @@ import { User } from '@/types';
 import ResetPasswordDialog from '@/components/reset-password-dialog';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { LogoutButton } from '@/components/buttons/logout';
 
 export default async function Account() {
   const cookieStore = await cookies();
@@ -33,8 +34,7 @@ export default async function Account() {
     'manager': 'Manager',
     'employee': 'Użytkownik',
   };
-
-
+  
   try {
     const { data } = await axios.get('/api/Users/me', {
       headers: {
@@ -65,8 +65,9 @@ export default async function Account() {
             </div>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col items-center space-y-2">
           <ResetPasswordDialog/>
+          <LogoutButton redirect={'/'}/>
         </CardFooter>
       </Card>
     );

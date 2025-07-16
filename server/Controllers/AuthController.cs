@@ -195,4 +195,19 @@ public class AuthController : ControllerBase
             return false;
         }
     }
+    
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Append("jwt", "", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            Expires = DateTime.UtcNow.AddDays(-1),
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
+
+        return Ok(new { success = true, message = "Wylogowano!" });
+    }
 }
