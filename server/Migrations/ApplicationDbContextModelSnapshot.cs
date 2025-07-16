@@ -45,7 +45,7 @@ namespace server.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("Attachment");
+                    b.ToTable("Attachment", (string)null);
                 });
 
             modelBuilder.Entity("server.Models.Note", b =>
@@ -75,7 +75,7 @@ namespace server.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("Note");
+                    b.ToTable("Note", (string)null);
                 });
 
             modelBuilder.Entity("server.Models.Request", b =>
@@ -126,7 +126,7 @@ namespace server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Request");
+                    b.ToTable("Request", (string)null);
                 });
 
             modelBuilder.Entity("server.Models.User", b =>
@@ -167,7 +167,7 @@ namespace server.Migrations
 
                     b.HasIndex("ManagerId");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("server.Models.Attachment", b =>
