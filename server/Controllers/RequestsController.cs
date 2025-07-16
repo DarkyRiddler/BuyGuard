@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 using server.Data;
+using server.DTOs.Request;
 using server.Models;
+
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -152,4 +154,54 @@ public class RequestsController : ControllerBase
             return Ok(request);
         return Forbid();
     }
+    [HttpPost]
+    public IActionResult CreateRequest([FromBody] CreateRequest request)
+    {
+        var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
+            return Unauthorized();
+        if (currentUserRole == "employee")
+        {
+            var matchingManager = _db.User
+                .Where(u => u.Role == "manager" && u.ManagerLimitPln >= request.amount_pln)
+                .OrderBy(u => u.ManagerLimitPln)
+                .FirstOrDefault();
+
+            int assignedManagerId;
+
+            if (matchingManager != null)
+            {
+                assignedManagerId = matchingManager.Id;
+            }
+            else
+            {
+                var admin = _db.User.FirstOrDefault(u => u.Role == "admin");
+                if (admin == null)
+                    return BadRequest("Brak dostępnego administratora.");
+                assignedManagerId = admin.Id;
+            }
+
+            var newRequest = new Request
+            {
+                Title = request.title,
+                Description = request.description,
+                AmountPln = request.amount_pln,
+                Reason = request.reason,
+                UserId = clientId,
+                Status = "czeka", // czeka, potwierdzono, odrzucono, zakupione.
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = null,
+                Attachments = new List<Attachment>(),
+                Notes = new List<Note>()
+            };
+
+            _db.Request.Add(newRequest);
+            _db.SaveChanges();
+
+            return Ok(new { success = true, requestId = newRequest.Id });
+        }
+        return Forbid("Tylko pracownicy moga skladac wnioski.");
+    }
+        
 }
