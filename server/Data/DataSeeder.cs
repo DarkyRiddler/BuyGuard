@@ -11,7 +11,7 @@ public static class DbSeeder
         var admin = new User
         {
             Email = "pszybiak@gmail.com",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("sigma"),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("sigma1"),
             FirstName = "Piotr",
             LastName = "Szybiak",
             Role = "admin"
@@ -21,7 +21,7 @@ public static class DbSeeder
         // Managers
        var managers = new List<User>
         {
-            new() { Email = "dwisniowski@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("sigma"), FirstName = "Dawid", LastName = "Wiśniowski", Role = "manager", ManagerLimitPln = 40000 },
+            new() { Email = "dwisniowski@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("sigma2"), FirstName = "Dawid", LastName = "Wiśniowski", Role = "manager", ManagerLimitPln = 40000 },
             new() { Email = "jnowak@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("password1"), FirstName = "Jan", LastName = "Nowak", Role = "manager", ManagerLimitPln = 60000 },
             new() { Email = "amalinowska@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("password2"), FirstName = "Anna", LastName = "Malinowska", Role = "manager", ManagerLimitPln = 140000 },
             new() { Email = "kzielinski@gmail.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("password3"), FirstName = "Krzysztof", LastName = "Zieliński", Role = "manager", ManagerLimitPln = 70000 },
