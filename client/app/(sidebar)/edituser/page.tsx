@@ -85,7 +85,6 @@ export default function InputForm() {
 
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-1/3 space-y-6">
           <FormField
@@ -131,6 +130,5 @@ export default function InputForm() {
           <Button type="submit" className={'w-full'}>Edytuj</Button>
         </form>
       </Form>
-    </div>
   );
 }

@@ -30,10 +30,20 @@ const FormSchema = z.object({
   }),
   password: z.string().min(6, {
     message: 'Hasło musi mieć co najmniej 6 znaków',
+  })
+  .refine(val => /[A-Z]/.test(val), {
+    message: 'Hasło musi mieć przynajmniej jedną dużą literę',
+  })
+  .refine(val => /[a-z]/.test(val), {
+    message: 'Hasło musi mieć przynajmniej jedną małą literę',
+  })
+  .refine(val => /[0-9]/.test(val), {
+    message: 'Hasło musi zawierać liczby',
+  })
+  .refine(val => /[^a-zA-Z0-9]/.test(val), {
+    message: 'Hasło musi mieć znaki specjalne',
   }),
-  confirmPassword: z.string().min(6, {
-    message: 'Potwierdzenie hasła musi mieć co najmniej 6 znaków',
-  }),
+  confirmPassword: z.string(),
 }).superRefine((data, ctx) => {
   if (data.password !== data.confirmPassword) {
     ctx.addIssue({
@@ -79,7 +89,6 @@ export default function InputForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-1/3 space-y-6">
           <FormField
@@ -169,6 +178,5 @@ export default function InputForm() {
           <Button type="submit" className={'w-full'}>Zarejestruj</Button>
         </form>
       </Form>
-    </div>
   );
 }

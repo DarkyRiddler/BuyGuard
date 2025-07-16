@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-
+using server.DTOs.Request;
 using server.Data;
 using server.DTOs.Request;
 using server.Models;
@@ -204,4 +204,50 @@ public class RequestsController : ControllerBase
         return Forbid("Tylko pracownicy moga skladac wnioski.");
     }
         
+    [HttpPut("{id}")]
+    public IActionResult UpdateRequest(int id, [FromBody] UpdateRequest updateDto)
+    {
+        var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
+            return Unauthorized();
+        if (userRole != "employee")
+            return Forbid("Tylko pracowniy mogą edytować zgłoszenia");
+        var request = _db.Request.FirstOrDefault(r => r.Id == id);
+        if (request == null)
+            return NotFound("Nie odnaleziono zgłoszenia");
+        if (request.UserId != clientId)
+            return Forbid("Możesz edytować tylko swoje zgłoszenia");
+        if (request.Status != "czeka")
+            return BadRequest("Możesz edytować tylko oczekujące zgłoszenia:");
+        if (updateDto.AmountPln.HasValue)
+        {
+            if (updateDto.AmountPln.Value <= 0)
+                return BadRequest("Kwota musi być większa od 0");
+    
+            if (updateDto.AmountPln.Value > 100000)
+                return BadRequest("hola hola kolego to chyba trochę za dużo");
+        }
+        if (!string.IsNullOrEmpty(updateDto.Title))
+            request.Title = updateDto.Title;
+        if (!string.IsNullOrEmpty(updateDto.Description))
+            request.Description = updateDto.Description;
+        if (updateDto.AmountPln.HasValue)
+            request.AmountPln = updateDto.AmountPln.Value;
+        if (!string.IsNullOrEmpty(updateDto.Reason))
+            request.Reason = updateDto.Reason;
+        request.UpdatedAt = DateTime.UtcNow;
+        _db.SaveChanges();
+        var updatedRequest = new
+        {
+            id = request.Id,
+            title = request.Title,
+            description = request.Description,
+            amountPln = request.AmountPln,
+            reason = request.Reason,
+            status = request.Status,
+            updatedAt = request.UpdatedAt
+        };
+        return Ok(updatedRequest);
+    }
 }
