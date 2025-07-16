@@ -204,7 +204,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = true,
             Expires = DateTime.UtcNow.AddDays(-1),
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.None,
             Path = "/"
         });
 
