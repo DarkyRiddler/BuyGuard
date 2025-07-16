@@ -18,6 +18,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import axios from '@/lib/utils';
+import { isAxiosError } from 'axios';
+import { useRouter } from 'next/navigation';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -28,7 +30,9 @@ const FormSchema = z.object({
   }),
 });
 
-export default function InputForm(data: z.infer<typeof FormSchema>) {
+export default function InputForm() {
+  const router = useRouter();
+  
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -38,20 +42,18 @@ export default function InputForm(data: z.infer<typeof FormSchema>) {
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    const { ...sanitizedData } = data;
-    toast('You submitted the following values', {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-
     try {
-      const res = await axios.post('auth/login', sanitizedData);
-      console.log('Response from server:', res);
+      await axios.post('auth/login', data);
+      toast.success('Zalogowano pomyślnie');
+      setTimeout(() => router.push('/'), 1000);
     } catch (error) {
-      console.error(error);
+      if (isAxiosError(error)) {
+        if (isAxiosError(error)) {
+          toast.error(error.response?.data?.message ?? 'Wystąpił nieznany błąd');
+        } else {
+          toast.error('Wystąpił błąd połączenia');
+        }
+      }
     }
   }
 

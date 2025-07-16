@@ -9,13 +9,26 @@ import {
 } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
+import Link from 'next/link';
 
 const links = [
   {
     title: 'Konto',
     url: '/account',
     icon: User
-  }
+  },
+  {
+    title: 'Login',
+    url: '/login',
+  },
+  {
+    title: 'Rejestracja',
+    url: '/register',
+  },
+  {
+    title: 'Użytkownicy',
+    url: '/userlist',
+  },
 ]
 
 export function AppSidebar() {
@@ -32,10 +45,10 @@ export function AppSidebar() {
               {links.map((link) => (
                 <SidebarMenuItem key={link.title}>
                   <SidebarMenuButton asChild>
-                    <a href={link.url}>
-                      <link.icon />
+                    <Link href={link.url}>
+                      {link.icon && <link.icon />}
                       <span>{link.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
