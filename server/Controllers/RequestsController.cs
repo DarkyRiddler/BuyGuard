@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using server.DTOs.Request;
 using server.Data;
-using server.DTOs.Request;
 using server.Models;
 
 [Authorize]
