@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import axios from 'axios';
+import axios from '@/lib/utils';
 import {
   Dialog,
   DialogTrigger,
@@ -10,26 +9,38 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
+  DialogFooter, DialogClose,
 } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { isAxiosError } from 'axios';
+import { useRouter } from 'next/navigation';
 
-const USER_ID = 1; // ← zmień na dynamiczne ID
+type DeleteButtonProps = {
+  userId: number;
+};
 
-export default function DeleteButton() {
-  const [open, setOpen] = useState(false);
-
+export default function DeleteButton({ userId }: DeleteButtonProps) {
+  const router = useRouter();
+  
   async function handleDelete() {
     try {
-      await axios.delete('/api/Users/${USER_ID}');
-      setOpen(false);
-      window.location.href = '/';
+      await axios.delete(`api/Users/${userId}`,);
+      toast.success('Usunięto użytkownika pomyślnie');
+      setTimeout(() => router.refresh(), 1000);
     } catch (error) {
-      console.error(error);
+      if (isAxiosError(error)) {
+        if (isAxiosError(error)) {
+          console.log(error);
+          toast.error(error.response?.data?.message ?? 'Wystąpił nieznany błąd');
+        } else {
+          toast.error('Wystąpił błąd połączenia');
+        }
+      }
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
       <DialogTrigger asChild>
         <Button className="w-full bg-red-600 hover:bg-red-700">
           Usuń
@@ -43,9 +54,9 @@ export default function DeleteButton() {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <DialogClose>
             Anuluj
-          </Button>
+          </DialogClose>
           <Button className="bg-red-600 hover:bg-red-700" onClick={handleDelete}>
             Usuń
           </Button>

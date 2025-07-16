@@ -14,6 +14,7 @@ import {
     PaginationPrevious,
 } from '@/components/ui/pagination';
 import axios from '@/lib/utils';
+import DeleteButton from '@/components/buttons/deleteuser';
 
 interface User {
     id: number;
@@ -238,6 +239,7 @@ export default function UserList() {
                                             {user.managerLimitPln ? `${user.managerLimitPln.toLocaleString()} PLN` : '-'}
                                         </TableCell>
                                     )}
+                                    <TableCell><DeleteButton userId={user.id}/></TableCell>
                                 </TableRow>
                             ))
                         )}
