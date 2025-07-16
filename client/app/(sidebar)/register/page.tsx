@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -18,8 +18,6 @@ import { Input } from '@/components/ui/input';
 import { Eye, EyeOff } from 'lucide-react';
 import axios from '@/lib/utils';
 
-
-
 const FormSchema = z.object({
   firstname: z.string().min(1, {
     message: 'Imię jest wymagane',
@@ -30,9 +28,21 @@ const FormSchema = z.object({
   email: z.string().email({
     message: 'Nieprawidłowy adres e-mail',
   }),
-  });
-
-
+  password: z.string().min(6, {
+    message: 'Hasło musi mieć co najmniej 6 znaków',
+  }),
+  confirmPassword: z.string().min(6, {
+    message: 'Potwierdzenie hasła musi mieć co najmniej 6 znaków',
+  }),
+}).superRefine((data, ctx) => {
+  if (data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['confirmPassword'],
+      message: 'Hasła nie pasują do siebie',
+    });
+  }
+});
 
 export default function InputForm() {
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -41,32 +51,14 @@ export default function InputForm() {
       firstname: '',
       lastname: '',
       email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
-  const USER_ID = 1;
-
-   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await axios.get('/api/Users/${USER_ID}');
-        form.reset({
-          firstname: res.data.firstname || '',
-          lastname: res.data.lastname || '',
-          email: res.data.email || '',
-        });
-      } catch (error) {
-        console.error('Błąd pobierania użytkownika:', error);
-        toast.error('Nie udało się załadować danych użytkownika');
-      }
-    }
-
-    fetchUser();
-  }, [form]);
-
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {  ...sanitizedData } = data;
+    const { confirmPassword, ...sanitizedData } = data;
     toast('You submitted the following values', {
       description: (
         <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
@@ -76,16 +68,17 @@ export default function InputForm() {
     });
     
     try {
-      const res = await axios.put('api/Users/${USER_ID}', sanitizedData);
+      const res = await axios.post('api/Users', sanitizedData);
       console.log('Response from server:', res);
     } catch (error) {
       console.error(error);
     }
   }
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-1/3 space-y-6">
           <FormField
@@ -128,9 +121,52 @@ export default function InputForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className={'w-full'}>Edytuj</Button>
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hasło</FormLabel>
+                <FormControl>
+                  <div className={'relative'}>
+                    <Input {...field} type={showPassword ? 'text' : 'password'}/>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-500"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Potwierdź hasło</FormLabel>
+                <FormControl>
+                  <div className={'relative'}>
+                    <Input {...field} type={showConfirmPassword ? 'text' : 'password'}/>
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-500"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className={'w-full'}>Zarejestruj</Button>
         </form>
       </Form>
-    </div>
   );
 }
