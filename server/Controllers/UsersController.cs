@@ -79,44 +79,6 @@ public class UsersController : ControllerBase
             totalUsers = totalUsers
         });
     }
-    /*
-     stare bez paginacji - mozna usunac jbc
-     public IActionResult GetUsers() 
-    {
-        var given_role = User.FindFirstValue(ClaimTypes.Role);
-        if (given_role == null) return Unauthorized();
-
-        if (given_role == "admin")
-        {
-            var users = _db.User
-                .Where(u => u.Role == "manager")
-                .Select(u => new
-                {
-                    Role = u.Role,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
-                    ManagerLimitPln = u.ManagerLimitPln
-                }).ToList();
-
-            return Ok(new { user = users });
-        }
-        if (given_role == "manager")
-        {
-            var users = _db.User
-                .Where(u => u.Role == "employee")
-                .Select(u => new
-                {
-                    Role = u.Role,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
-                }).ToList();
-
-            return Ok(new { user = users });
-        }
-        return Ok(new List<object>());
-    }*/
     
     [Authorize]
     [HttpGet("me")]
@@ -297,5 +259,4 @@ public class UsersController : ControllerBase
 
         return Ok(response);
     }
-   
 }
