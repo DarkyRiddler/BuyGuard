@@ -62,7 +62,7 @@ public static class DbSeeder
                 Description = "Laptop machen.",
                 AmountPln = 4500,
                 Reason = "Stary laptop wylądował na ścianie po przegranej w lola.",
-                Status = "pending",
+                Status = "czeka",
                 AiScore = null,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = null,
@@ -77,10 +77,130 @@ public static class DbSeeder
                 Description = "Chciałbym wziąć udział w szkoleniu.",
                 AmountPln = 1500,
                 Reason = "Podniesienie kwalifikacji zawodowych.",
-                Status = "pending",
+                Status = "czeka",
                 AiScore = null,
                 CreatedAt = DateTime.UtcNow.AddDays(-7),
                 UpdatedAt = DateTime.UtcNow,
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[2].Id,
+                ManagerId = dbEmployees[2].ManagerId ?? dbManagers[2].Id,
+                Title = "Monitor 27 cali",
+                Description = "Do pracy z arkuszami Excela.",
+                AmountPln = 1200,
+                Reason = "Poprawa komfortu pracy.",
+                Status = "czeka",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                UpdatedAt = null,
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[3].Id,
+                ManagerId = dbEmployees[3].ManagerId ?? dbManagers[2].Id,
+                Title = "Abonament Adobe",
+                Description = "Pakiet Adobe do projektów graficznych.",
+                AmountPln = 2400,
+                Reason = "Potrzebne do tworzenia materiałów reklamowych.",
+                Status = "czeka",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-2),
+                UpdatedAt = null,
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[4].Id,
+                ManagerId = dbEmployees[4].ManagerId ?? dbManagers[3].Id,
+                Title = "Nowe biurko",
+                Description = "Biurko regulowane do pracy stojącej.",
+                AmountPln = 1800,
+                Reason = "Zdrowie kręgosłupa.",
+                Status = "potwierdzono",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-15),
+                UpdatedAt = DateTime.UtcNow.AddDays(-10),
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[5].Id,
+                ManagerId = dbEmployees[5].ManagerId ?? dbManagers[3].Id,
+                Title = "Oprogramowanie księgowe",
+                Description = "Licencja na program księgowy.",
+                AmountPln = 3000,
+                Reason = "Automatyzacja procesów rozliczeń.",
+                Status = "odrzucono",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-20),
+                UpdatedAt = DateTime.UtcNow.AddDays(-19),
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[6].Id,
+                ManagerId = dbEmployees[6].ManagerId ?? dbManagers[3].Id,
+                Title = "Szkolenie z bezpieczeństwa IT",
+                Description = "Zewnętrzne szkolenie z cyberbezpieczeństwa.",
+                AmountPln = 950,
+                Reason = "Podniesienie bezpieczeństwa danych.",
+                Status = "zakupione",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                UpdatedAt = DateTime.UtcNow.AddDays(-3),
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[7].Id,
+                ManagerId = dbEmployees[7].ManagerId ?? dbManagers[4].Id,
+                Title = "Router sieciowy",
+                Description = "Router do poprawy jakości sieci w biurze.",
+                AmountPln = 700,
+                Reason = "Zrywanie połączenia.",
+                Status = "czeka",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-3),
+                UpdatedAt = null,
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[8].Id,
+                ManagerId = dbEmployees[8].ManagerId ?? dbManagers[4].Id,
+                Title = "Materiały biurowe",
+                Description = "Papier, długopisy, segregatory.",
+                AmountPln = 300,
+                Reason = "Wyposażenie stanowiska.",
+                Status = "potwierdzono",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-12),
+                UpdatedAt = DateTime.UtcNow.AddDays(-11),
+                Attachments = [],
+                Notes = []
+            },
+            new()
+            {
+                UserId = dbEmployees[9].Id,
+                ManagerId = dbEmployees[9].ManagerId ?? dbManagers[4].Id,
+                Title = "Nowy telefon służbowy",
+                Description = "Smartfon do kontaktu z klientami.",
+                AmountPln = 2000,
+                Reason = "Stary telefon przestał działać.",
+                Status = "czeka",
+                AiScore = null,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                UpdatedAt = null,
                 Attachments = [],
                 Notes = []
             }
