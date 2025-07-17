@@ -282,7 +282,7 @@ public class RequestsController : ControllerBase
             ".txt" => "text/plain",
             _ => "application/octet-stream"
         };
-
+    }
     [HttpPatch("{id}/status")]
     public IActionResult UpdateRequestStatus(int id, [FromBody] UpdateRequestStatusDTO statusDto)
     {
