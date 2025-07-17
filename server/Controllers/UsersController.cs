@@ -18,7 +18,29 @@ public class UsersController : ControllerBase
     {
         this._db = db;
     }
-
+    [Authorize]
+	[HttpGet("{id}"]
+	public IActionResult GetUser(int id){
+		var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        if (currentUserRole == null)
+            return Unauthorized();
+        var user = _db.User.FirstOrDefault(u => u.Id == id);
+        if (user == null) return NotFound();
+        if (currentUserRole == "admin" && user.Role != "manager")
+            return Forbid();
+        if (currentUserRole == "manager" && user.Role != "employee")
+            return Forbid();
+        
+        return Ok(new
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role,
+            ManagerLimitPln = user.ManagerLimitPln
+        });
+    }
     [Authorize]
     [HttpGet]
     public IActionResult GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
