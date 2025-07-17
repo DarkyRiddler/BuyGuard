@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { User } from '@/types';
-import ResetPasswordDialog from '@/components/reset-password-dialog';
+import ResetPasswordDialog from '@/components/forms/reset-password-dialog';
 import { LogoutButton } from '@/components/buttons/logout';
 
 export default async function Account() {

@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import axios from '@/lib/utils';
 import { useState } from 'react';
+import { isAxiosError } from 'axios';
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
@@ -62,19 +63,18 @@ export default function RegisterForm() {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...sanitizedData } = data;
-    toast('You submitted the following values', {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-
+    
     try {
-      const res = await axios.post('api/Users', sanitizedData);
-      console.log('Response from server:', res);
+      await axios.post('api/Users', sanitizedData);
+      toast.success('Konto zostało pomyślnie utworzone');
     } catch (error) {
-      console.error(error);
+      if (isAxiosError(error)) {
+        if (isAxiosError(error)) {
+          toast.error(error.response?.data ?? 'Wystąpił nieznany błąd');
+        } else {
+          toast.error('Wystąpił błąd połączenia');
+        }
+      }
     }
   }
 

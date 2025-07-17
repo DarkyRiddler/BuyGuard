@@ -17,7 +17,6 @@ export function LogoutButton() {
     } catch (error) {
       if (isAxiosError(error)) {
         if (isAxiosError(error)) {
-          console.log(error);
           toast.error(error.response?.data?.message ?? 'Wystąpił nieznany błąd');
         } else {
           toast.error('Wystąpił błąd połączenia');
