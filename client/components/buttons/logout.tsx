@@ -6,18 +6,14 @@ import { toast } from 'sonner';
 import { isAxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 
-type LogoutButtonProps = {
-  redirect: string;
-};
-
-export function LogoutButton({ redirect }: LogoutButtonProps) {
+export function LogoutButton() {
   const router = useRouter();
 
   async function logout() {
     try {
       await axios.post('auth/logout');
       toast.success('Wylogowano pomyślnie');
-      setTimeout(() => router.push(redirect), 1000);
+      setTimeout(() => router.push('/login'), 1000);
     } catch (error) {
       if (isAxiosError(error)) {
         if (isAxiosError(error)) {
