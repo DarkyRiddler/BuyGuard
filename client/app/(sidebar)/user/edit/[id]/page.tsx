@@ -20,8 +20,8 @@ import { useParams } from 'next/navigation';
 import { User } from '@/types';
 import { isAxiosError } from 'axios';
 import Link from 'next/link';
-import { useUserRole } from '@/hooks/use-user-role';
 import { Eye, EyeOff } from 'lucide-react';
+import { useUser } from '@/context/user-context';
 
 
 const FormSchema = z.object({
@@ -74,8 +74,8 @@ async function fetchUser(id: string) {
 export default function InputForm() {
   const params = useParams();
   const id = params.id as string;
-  const role = useUserRole();
-
+  const user = useUser()
+  
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -83,7 +83,7 @@ export default function InputForm() {
       lastname: '',
       password: '',
       confirmPassword: '',
-      managerLimitPln: role === 'admin' ? 0 : undefined,
+      managerLimitPln: user?.role === 'admin' ? 0 : undefined,
     },
   });
 
@@ -194,7 +194,7 @@ export default function InputForm() {
             </FormItem>
           )}
         />
-        {role === 'admin' && (
+        {user?.role === 'admin' && (
           <FormField
             control={form.control}
             name="managerLimitPln"

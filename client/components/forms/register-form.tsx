@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import axios from '@/lib/utils';
 import { useState } from 'react';
 import { isAxiosError } from 'axios';
-import { useUserRole } from '@/hooks/use-user-role';
+import { useUser } from '@/context/user-context';
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
@@ -54,7 +54,8 @@ const FormSchema = z.object({
 });
 
 export default function RegisterForm() {
-  const role = useUserRole();
+  const user = useUser();
+  console.log('user', user);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -64,7 +65,7 @@ export default function RegisterForm() {
       email: '',
       password: '',
       confirmPassword: '',
-      managerLimitPln: role === 'admin' ? 0 : undefined,
+      managerLimitPln: user?.role === 'admin' ? 0 : undefined,
     },
   });
 
@@ -185,7 +186,7 @@ export default function RegisterForm() {
             </FormItem>
           )}
         />
-        {role === 'admin' && (
+        {user?.role === 'admin' && (
           <FormField
             control={form.control}
             name="managerLimitPln"
