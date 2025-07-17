@@ -382,7 +382,6 @@ export default function RequestList() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                                        {/* Status Filter */}
                                         <div>
                                             <Label htmlFor="status">Status</Label>
                                             <Select value={filters.status || 'all'} onValueChange={(value) => handleFilterChange('status', value === 'all' ? '' : value)}>
