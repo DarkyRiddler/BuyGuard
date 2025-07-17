@@ -1,6 +1,6 @@
 ﻿namespace server.DTOs.User;
 
-public class UpdateUserRequest
+public record class UpdateUserRequest
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }

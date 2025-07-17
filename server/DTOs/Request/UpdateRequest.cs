@@ -1,6 +1,6 @@
 ﻿namespace server.DTOs.Request;
 
-public class UpdateRequest
+public record class UpdateRequest
 {
     public string? Title { get; set; }
     public string? Description { get; set; }

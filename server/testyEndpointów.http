@@ -3,9 +3,8 @@ GET http://localhost:5159/api/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJkd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJtYW5hZ2VyIiwiZXhwIjoxNzUyNTE2MDE5fQ.5fgiWtew0pu0cScN2TQiKOPMCscs4_j2JVl7sBfcyss
 
 ### get listy ze strony admina DZIAŁA
-GET http://localhost:5159/api/users
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJwc3p5Ymlha0BnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc1MjUxNTgyMH0.jWNgooMw5IOipx26bfLQu-NqiNxlTBxxymf-4SUnZK8
-
+GET http://localhost:5159/api/users?page=1&pageSize=2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJwc3p5Ymlha0BnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTc1MjY2Mjg0N30.V_oVSdyA1lCDzfszgvYK1ZEK7wKSjBfwqj3jCgS3Qbc
 ### get employee DZIAŁA
 GET http://localhost:5159/api/users/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJlbXBsb3llZSIsImV4cCI6MTc1MjUxNDUzMn0.oo_L54bF85JwHWvWsE9GYQWlxzYVNy4B5McFK8QtxuE
@@ -30,8 +29,8 @@ POST http://localhost:5159/auth/login
 Content-Type: application/json
 
 {
-  "Email": "kochamtencze123@gmail.com",
-  "Password": "Tusk"
+  "Email": "dwisniowski@gmail.com",
+  "Password": "sigma2"
 }
 ### delete usera ze strony admina DZIAŁA
 DELETE http://localhost:5159/api/users/3
@@ -68,4 +67,54 @@ Content-Type: application/json
   "CurrentPassword": "Tusk123!",
   "NewPassword": "Tusk123!",
   "ConfirmNewPassword": "Tusk123!"
+}
+###
+GET http://localhost:5159/api/requests
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJkd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJtYW5hZ2VyIiwiZXhwIjoxNzUyNTg1NTYwfQ.EFkSyjf7pWjgi6dIw6PeRrq9moeWIBLB6Z1l3spHTSY
+### "dwisniowski@gmail.com"
+POST http://localhost:5159/auth/login 
+Content-Type: application/json
+
+{
+  "Email": "dwisniowski@gmail.com",
+  "Password": "sigma"
+}
+
+### 
+GET http://localhost:5159/api/requests/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJkd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJtYW5hZ2VyIiwiZXhwIjoxNzUyNjU2MzIyfQ.dDvvBROxGTCj1EXYOYDxH7o-hzEjk7J7jcTNkZYdkqU
+###
+PUT http://localhost:5159/api/requests/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJlbXBsb3llZSIsImV4cCI6MTc1MjY2ODEyMn0.rXSXIeYo1JjF9Bzh7dtkXwJaNrQlMM51lWoBEPWwxO0
+Content-Type: application/json
+
+{
+"title": "Nowy tytuł",
+"description": "Nowy opis",
+"amountPln": 5000,
+"reason": "Nowy powód"
+}
+### 
+POST http://localhost:5159/api/requests/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJlbXBsb3llZSIsImV4cCI6MTc1Mjc0MjU4OH0.Bq9wba51cS_r2pWRsByQr6r-_Wkz0xeWix8w3z1iFac
+Content-Type: application/json
+
+{
+  "title": "Nowy request",
+  "url": "https://example.com",
+  "description": "Nowy opis",
+  "amount_pln": 5000,
+  "reason": "Nowy powód"
+}
+###
+PATCH http://localhost:5159/api/requests/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjciLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtd2lzbmlvd3NraUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJlbXBsb3llZSIsImV4cCI6MTc1Mjc0MjU4OH0.Bq9wba51cS_r2pWRsByQr6r-_Wkz0xeWix8w3z1iFac
+Content-Type: application/json
+
+{
+  "title": "Nowy request",
+  "url": "https://example.com",
+  "description": "Nowy opis",
+  "amount_pln": 5000,
+  "reason": "Nowy powód"
 }

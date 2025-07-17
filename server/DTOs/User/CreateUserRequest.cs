@@ -1,6 +1,6 @@
 ﻿namespace server.DTOs.User;
 
-public class CreateUserRequest
+public record class CreateUserRequest
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

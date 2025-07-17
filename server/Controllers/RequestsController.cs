@@ -4,6 +4,7 @@ using System.Security.Claims;
 using server.DTOs.Request;
 using server.Data;
 using server.Models;
+using Microsoft.EntityFrameworkCore;
 
 [Authorize]
 [ApiController]
@@ -123,6 +124,11 @@ public class RequestsController : ControllerBase
 
         var request = _db.Request
             .Where(r => r.Id == id)
+            .Include(r => r.User)
+            .Include(r => r.Manager)
+            .Include(r => r.Attachments)
+            .Include(r => r.Notes)!
+                .ThenInclude(n => n.Author)
             .Select(r => new
             {
                 id = r.Id,
@@ -140,8 +146,8 @@ public class RequestsController : ControllerBase
                 managerId = r.ManagerId,
                 managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
                 managerEmail = r.Manager != null ? r.Manager.Email : null,
-                attachments = (r.Attachments ?? new List<Attachment>())
-                                .Select(a => new { a.FileUrl, a.MimeType }),
+                attachments = r.Attachments.AsEnumerable()
+                            .Select(a => new { a.FileUrl, a.MimeType }),
 
                 notes = (r.Notes ?? new List<Note>())
                     .Select(n => new
@@ -151,6 +157,7 @@ public class RequestsController : ControllerBase
                         n.CreatedAt
                     })
             })
+            
             .FirstOrDefault();
         if (userRole == "admin" || request?.userId == clientId || request?.managerId == clientId)
             return Ok(request);
