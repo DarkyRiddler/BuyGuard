@@ -275,7 +275,7 @@ public class RequestsController : ControllerBase
         {
             var note = new server.Models.Note
             {
-                RequestId = request.Id
+                RequestId = request.Id,
                 AuthorId = clientId,
                 Body = $"Status zmieniony na {statusDto.Status}. Podwód: {statusDto.Reason}",
                 CreatedAt = DateTime.UtcNow
