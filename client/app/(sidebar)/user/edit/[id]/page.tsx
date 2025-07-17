@@ -21,6 +21,8 @@ import { User } from '@/types';
 import { isAxiosError } from 'axios';
 import Link from 'next/link';
 
+
+// TODO: Usunięcie Maila oraz dodanie hasła i limitu
 const FormSchema = z.object({
   firstname: z.string().min(1, {
     message: 'Imię jest wymagane',

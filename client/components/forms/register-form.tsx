@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import axios from '@/lib/utils';
 import { useState } from 'react';
 import { isAxiosError } from 'axios';
+import { useUserRole } from '@/hooks/use-user-role';
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
@@ -38,6 +39,10 @@ const FormSchema = z.object({
     message: 'Hasło musi mieć znaki specjalne',
   }),
   confirmPassword: z.string(),
+  managerLimitPln: z
+  .number()
+  .min(0, { message: 'Limit musi być liczbą większą lub równą 0' })
+  .optional(),
 }).superRefine((data, ctx) => {
   if (data.password !== data.confirmPassword) {
     ctx.addIssue({
@@ -49,6 +54,8 @@ const FormSchema = z.object({
 });
 
 export default function RegisterForm() {
+  const role = useUserRole();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -57,13 +64,14 @@ export default function RegisterForm() {
       email: '',
       password: '',
       confirmPassword: '',
+      managerLimitPln: role === 'admin' ? 0 : undefined,
     },
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...sanitizedData } = data;
-    
+
     try {
       await axios.post('api/Users', sanitizedData);
       toast.success('Konto zostało pomyślnie utworzone');
@@ -80,7 +88,7 @@ export default function RegisterForm() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   return (
     <Form {...form}>
       <div className="relative w-1/3 ">
@@ -88,7 +96,7 @@ export default function RegisterForm() {
           className="absolute bottom-20 w-1/1 text-4xl text-slate-900 dark:text-yellow-600 font-bold text-center"> BuyGuard
         </h1>
 
-        <h2 className='absolute bottom-10 w-1/1 text-2xl text-slate-900 dark:text-sky-50 font bold text-center'>Stwórz
+        <h2 className="absolute bottom-10 w-1/1 text-2xl text-slate-900 dark:text-sky-50 font bold text-center">Stwórz
           konto</h2>
       </div>
 
@@ -177,8 +185,25 @@ export default function RegisterForm() {
             </FormItem>
           )}
         />
+        {role === 'admin' && (
+          <FormField
+            control={form.control}
+            name="managerLimitPln"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Limit</FormLabel>
+                <FormControl>
+                  <Input type={'number'} {...field} onChange={(e) =>
+                    field.onChange(e.target.value === '' ? undefined : Number(e.target.value))
+                  }/>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+        )}
         <Button type="submit" className={'w-full'}>Zarejestruj</Button>
       </form>
     </Form>
-  )
+  );
 }
