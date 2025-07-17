@@ -279,7 +279,17 @@ public class UsersController : ControllerBase
         {
             return Forbid("Tylko admin i menedżer mogą edytować użytkowników");
         }
-        
+
+        if (!string.IsNullOrEmpty(request.Email) && request.Email != userToUpdate.Email)
+        {
+            var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
+            if (existingUser != null)
+            {
+                return Conflict("Email jest już zajęty");
+            }
+
+            userToUpdate.Email = request.Email;
+        }
         if (!string.IsNullOrEmpty(request.FirstName))
         {
             userToUpdate.FirstName = request.FirstName;
