@@ -7,37 +7,30 @@ import {
   SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { User } from 'lucide-react';
+import { List, User, UserRoundPlus } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import Link from 'next/link';
 
 const links = [
   {
-    title: 'Konto',
-    url: '/account',
-    icon: User
-  },
-  {
-    title: 'Login',
-    url: '/login',
-  },
-  {
     title: 'Rejestracja',
     url: '/register',
+    icon: UserRoundPlus
   },
   {
     title: 'Użytkownicy',
-    url: '/userlist',
+    url: '/user/list',
+    icon: List
   },
-]
+];
 
 export function AppSidebar() {
   return (
     <Sidebar>
-      <SidebarHeader className = 'dark:bg-gray-950'>
+      <SidebarHeader className="dark:bg-gray-950">
         <h1 className="text-lg font-semibold text-center">BuyGuard 🛒</h1>
       </SidebarHeader>
-      <SidebarContent className = 'dark:bg-gray-950'>
+      <SidebarContent className="dark:bg-gray-950">
         <SidebarGroup>
           <SidebarGroupLabel>Linki tu mozna dać</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -46,7 +39,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={link.title}>
                   <SidebarMenuButton asChild>
                     <Link href={link.url}>
-                      {link.icon && <link.icon />}
+                      {link.icon && <link.icon/>}
                       <span>{link.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -56,9 +49,19 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter  className = 'dark:bg-gray-950'>
-        <DarkModeToggle />
+      <SidebarFooter className="dark:bg-gray-950">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link href={'/account'}>
+                <User/>
+                <span>Konto</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <DarkModeToggle/>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
