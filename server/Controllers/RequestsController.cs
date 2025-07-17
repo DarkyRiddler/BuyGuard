@@ -249,4 +249,47 @@ public class RequestsController : ControllerBase
         };
         return Ok(updatedRequest);
     }
+
+    [HttpPatch("{id}/status")]
+    public IActionResult UpdateRequestStatus(int id, [FromBody] UpdateRequestStatusDTO statusDto)
+    {
+        var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
+            return Unauthorized();
+        if (userRole != "manager" && userRole != "admin")
+            return Forbid("Tylko menedżer lub admin może zmieniać status");
+        var request = _db.Request.FirstOrDefault(r => r.Id == id);
+        if (request == null)
+            return NotFound("Zgłoszenie nie zostało znalezione");
+        if (userRole == "manager" && request.ManagerId != clientId)
+            return Forbid("Możesz zmieniać status tylko przypisanych do ciebie zgłoszeń");
+        if (request.Status != "czeka")
+            return BadRequest("Można zmienić status tylko oczekujących zgłoszeń");
+        var validStatuses = new[] { "potwierdzono", "odrzucono", "zakupione" };
+        if (!validStatuses.Contains(statusDto.Status))
+            return BadRequest("Niepoprawny status");
+        request.Status = statusDto.Status;
+        request.UpdatedAt = DateTime.UtcNow;
+        if (!string.IsNullOrEmpty(statusDto.Reason))
+        {
+            var note = new server.Models.Note
+            {
+                RequestId = request.Id
+                AuthorId = clientId,
+                Body = $"Status zmieniony na {statusDto.Status}. Podwód: {statusDto.Reason}",
+                CreatedAt = DateTime.UtcNow
+            };
+            _db.Note.Add(note);
+        }
+
+        _db.SaveChanges();
+        return Ok(new
+        {
+            id = request.Id,
+            status = request.Status,
+            updatedAt = request.UpdatedAt,
+            message = $"Status zgłoszenia został zmieniony na {statusDto.Status}"
+        });
+    }
 }
