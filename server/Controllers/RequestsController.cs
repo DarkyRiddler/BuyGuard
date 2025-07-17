@@ -188,6 +188,7 @@ public class RequestsController : ControllerBase
                 AmountPln = request.amount_pln,
                 Reason = request.reason,
                 UserId = clientId,
+                ManagerId = assignedManagerId,
                 Status = "czeka", // czeka, potwierdzono, odrzucono, zakupione.
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = null,
@@ -277,7 +278,7 @@ public class RequestsController : ControllerBase
             {
                 RequestId = request.Id,
                 AuthorId = clientId,
-                Body = $"Status zmieniony na {statusDto.Status}. Podwód: {statusDto.Reason}",
+                Body = $"Status zmieniony na {statusDto.Status}. Powód: {statusDto.Reason}",
                 CreatedAt = DateTime.UtcNow
             };
             _db.Note.Add(note);
