@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
 import axios from '@/lib/utils';
-
-
+import { useParams } from 'next/navigation';
+import { User } from '@/types';
+import { isAxiosError } from 'axios';
+import Link from 'next/link';
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
@@ -32,9 +33,20 @@ const FormSchema = z.object({
   }),
   });
 
-
+async function fetchUser(id: string) {
+  try {
+    const res = await axios.get(`/api/Users/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
+  }
+}
 
 export default function InputForm() {
+  const params = useParams();
+  const id = params.id as string;
+  
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -44,42 +56,33 @@ export default function InputForm() {
     },
   });
 
-  const USER_ID = 1;
-
-   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await axios.get('/api/Users/${USER_ID}');
-        form.reset({
-          firstname: res.data.firstname || '',
-          lastname: res.data.lastname || '',
-          email: res.data.email || '',
-        });
-      } catch (error) {
-        console.error('Błąd pobierania użytkownika:', error);
-        toast.error('Nie udało się załadować danych użytkownika');
-      }
-    }
-
-    fetchUser();
-  }, [form]);
+  useEffect(() => {
+    fetchUser(id)
+    .then((user: User) => {
+      form.reset({
+        firstname: user.firstName || '',
+        lastname: user.lastName || '',
+        email: user.email || '',
+      })
+    })
+    .catch((error) => {
+      console.error('Error fetching user:', error);
+      toast.error('Nie udało się pobrać danych użytkownika');
+    })
+  }, [form, id]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {  ...sanitizedData } = data;
-    toast('You submitted the following values', {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-    
     try {
-      const res = await axios.put('api/Users/${USER_ID}', sanitizedData);
-      console.log('Response from server:', res);
+      await axios.patch(`api/Users/${id}`, data);
+      toast.success('Użytkownik został zaktualizowany pomyślnie');
     } catch (error) {
-      console.error(error);
+      if (isAxiosError(error)) {
+        if (isAxiosError(error)) {
+          toast.error(error.response?.data ?? 'Wystąpił nieznany błąd');
+        } else {
+          toast.error('Wystąpił błąd połączenia');
+        }
+      }
     }
   }
 
@@ -128,6 +131,9 @@ export default function InputForm() {
             )}
           />
           <Button type="submit" className={'w-full'}>Edytuj</Button>
+          <Button type="button" className={'w-full'} asChild>
+            <Link href={'/user/list'}>Powrót do listy</Link>
+          </Button>
         </form>
       </Form>
   );
