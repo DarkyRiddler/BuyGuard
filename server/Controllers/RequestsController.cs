@@ -4,6 +4,7 @@ using System.Security.Claims;
 using server.DTOs.Request;
 using server.Data;
 using server.Models;
+using Microsoft.EntityFrameworkCore;
 
 [Authorize]
 [ApiController]
@@ -18,73 +19,42 @@ public class RequestsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetRequests([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public IActionResult GetRequests(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? status = null,
+        [FromQuery] decimal? minAmount = null,
+        [FromQuery] decimal? maxAmount = null,
+        [FromQuery] DateTime? dateFrom = null,
+        [FromQuery] DateTime? dateTo = null,
+        [FromQuery] string? searchName = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] string? sortOrder = "asc")
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
             return Unauthorized();
 
-        IQueryable<object> requestsQuery;
+        IQueryable<Request> requestsQuery;
 
         if (userRole == "admin")
         {
-            requestsQuery = _db.Request
-                .Select(r => new
-                {
-                    id = r.Id,
-                    userEmail = r.User != null ? r.User.Email : null,
-                    userId = r.UserId,
-                    userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
-                    managerId = r.ManagerId,
-                    managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
-                    description = r.Description,
-                    amountPln = r.AmountPln,
-                    reason = r.Reason,
-                    status = r.Status,
-                    createdAt = r.CreatedAt,
-                    updatedAt = r.UpdatedAt,
-                });
+            requestsQuery = _db.Request.Include(r => r.User).Include(r => r.Manager);
         }
         else if (userRole == "manager")
         {
             requestsQuery = _db.Request
-                .Where(r => r.ManagerId == clientId)
-                .Select(r => new
-                {
-                    id = r.Id,
-                    userEmail = r.User != null ? r.User.Email : null,
-                    userId = r.UserId,
-                    userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
-                    managerId = r.ManagerId,
-                    managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
-                    description = r.Description,
-                    amountPln = r.AmountPln,
-                    reason = r.Reason,
-                    status = r.Status,
-                    createdAt = r.CreatedAt,
-                    updatedAt = r.UpdatedAt,
-                });
+                .Include(r => r.User)
+                .Include(r => r.Manager)
+                .Where(r => r.ManagerId == clientId);
         }
         else if (userRole == "employee")
         {
             requestsQuery = _db.Request
-                .Where(r => r.UserId == clientId)
-                .Select(r => new
-                {
-                    id = r.Id,
-                    userEmail = r.User != null ? r.User.Email : null,
-                    userId = r.UserId,
-                    userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
-                    managerId = r.ManagerId,
-                    managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
-                    description = r.Description,
-                    amountPln = r.AmountPln,
-                    reason = r.Reason,
-                    status = r.Status,
-                    createdAt = r.CreatedAt,
-                    updatedAt = r.UpdatedAt,
-                });
+                .Include(r => r.User)
+                .Include(r => r.Manager)
+                .Where(r => r.UserId == clientId);
         }
         else
         {
@@ -97,19 +67,112 @@ public class RequestsController : ControllerBase
             });
         }
 
+        if (!string.IsNullOrEmpty(status))
+        {
+            requestsQuery = requestsQuery.Where(r => r.Status == status);
+        }
+
+        if (minAmount.HasValue)
+        {
+            requestsQuery = requestsQuery.Where(r => r.AmountPln >= minAmount.Value);
+        }
+
+        if (maxAmount.HasValue)
+        {
+            requestsQuery = requestsQuery.Where(r => r.AmountPln <= maxAmount.Value);
+        }
+
+        if (dateFrom.HasValue)
+        {
+            requestsQuery = requestsQuery.Where(r => r.CreatedAt >= dateFrom.Value);
+        }
+
+        if (dateTo.HasValue)
+        {
+            requestsQuery = requestsQuery.Where(r => r.CreatedAt <= dateTo.Value);
+        }
+
+        if (!string.IsNullOrEmpty(searchName))
+        {
+            requestsQuery = requestsQuery.Where(r =>
+                r.User != null &&
+                (r.User.FirstName.Contains(searchName) ||
+                 r.User.LastName.Contains(searchName) ||
+                 r.User.Email.Contains(searchName)));
+        }
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            switch (sortBy.ToLower())
+            {
+                case "amount":
+                    requestsQuery = sortOrder?.ToLower() == "desc"
+                        ? requestsQuery.OrderByDescending(r => r.AmountPln)
+                        : requestsQuery.OrderBy(r => r.AmountPln);
+                    break;
+                case "createdat":
+                    requestsQuery = sortOrder?.ToLower() == "desc"
+                        ? requestsQuery.OrderByDescending(r => r.CreatedAt)
+                        : requestsQuery.OrderBy(r => r.CreatedAt);
+                    break;
+                case "status":
+                    requestsQuery = sortOrder?.ToLower() == "desc"
+                        ? requestsQuery.OrderByDescending(r => r.Status)
+                        : requestsQuery.OrderBy(r => r.Status);
+                    break;
+                case "username":
+                    requestsQuery = sortOrder?.ToLower() == "desc"
+                        ? requestsQuery.OrderByDescending(r => r.User.FirstName).ThenByDescending(r => r.User.LastName)
+                        : requestsQuery.OrderBy(r => r.User.FirstName).ThenBy(r => r.User.LastName);
+                    break;
+                default:
+                    requestsQuery = requestsQuery.OrderByDescending(r => r.CreatedAt);
+                    break;
+            }
+        }
+        else
+        {
+            requestsQuery = requestsQuery.OrderByDescending(r => r.CreatedAt);
+        }
+
         var totalRequests = requestsQuery.Count();
         var totalPages = (int)Math.Ceiling((double)totalRequests / pageSize);
         var pagedRequests = requestsQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(r => new
+            {
+                id = r.Id,
+                userEmail = r.User != null ? r.User.Email : null,
+                userId = r.UserId,
+                userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
+                managerId = r.ManagerId,
+                managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
+                description = r.Description,
+                amountPln = r.AmountPln,
+                reason = r.Reason,
+                status = r.Status,
+                createdAt = r.CreatedAt,
+                updatedAt = r.UpdatedAt,
+            })
             .ToList();
-
         return Ok(new
         {
             request = pagedRequests,
             totalPages = totalPages,
             currentPage = page,
-            totalRequests = totalRequests
+            totalRequests = totalRequests,
+            filters = new
+            {
+                status = status,
+                minAmount = minAmount,
+                maxAmount = maxAmount,
+                dateFrom = dateFrom,
+                dateTo = dateTo,
+                searchName = searchName,
+                sortBy = sortBy,
+                sortOrder = sortOrder
+            }
         });
     }
     [HttpGet("{id}")]
