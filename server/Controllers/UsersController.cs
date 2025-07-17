@@ -19,7 +19,7 @@ public class UsersController : ControllerBase
         this._db = db;
     }
     [Authorize]
-	[HttpGet("{id}"]
+	[HttpGet("{id}")]
 	public IActionResult GetUser(int id){
 		var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
         if (currentUserRole == null)
