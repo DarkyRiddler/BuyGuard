@@ -34,10 +34,10 @@ const links = [
 export function AppSidebar() {
   return (
     <Sidebar>
-      <SidebarHeader>
-        <h1 className="text-lg font-semibold">BuyGuard 🛒</h1>
+      <SidebarHeader className = 'dark:bg-gray-950'>
+        <h1 className="text-lg font-semibold text-center">BuyGuard 🛒</h1>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className = 'dark:bg-gray-950'>
         <SidebarGroup>
           <SidebarGroupLabel>Linki tu mozna dać</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -56,7 +56,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter  className = 'dark:bg-gray-950'>
         <DarkModeToggle />
       </SidebarFooter>
     </Sidebar>
