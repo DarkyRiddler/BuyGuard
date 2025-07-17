@@ -33,9 +33,9 @@ public class RequestsController : ControllerBase
                 .Select(r => new
                 {
                     id = r.Id,
-                    userEmail = r.User.Email,
+                    userEmail = r.User != null ? r.User.Email : null,
                     userId = r.UserId,
-                    userName = $"{r.User.FirstName} {r.User.LastName}",
+                    userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
                     managerId = r.ManagerId,
                     managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
                     description = r.Description,
@@ -53,9 +53,9 @@ public class RequestsController : ControllerBase
                 .Select(r => new
                 {
                     id = r.Id,
-                    userEmail = r.User.Email,
+                    userEmail = r.User != null ? r.User.Email : null,
                     userId = r.UserId,
-                    userName = $"{r.User.FirstName} {r.User.LastName}",
+                    userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
                     managerId = r.ManagerId,
                     managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
                     description = r.Description,
@@ -73,9 +73,9 @@ public class RequestsController : ControllerBase
                 .Select(r => new
                 {
                     id = r.Id,
-                    userEmail = r.User.Email,
+                    userEmail = r.User != null ? r.User.Email : null,
                     userId = r.UserId,
-                    userName = $"{r.User.FirstName} {r.User.LastName}",
+                    userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
                     managerId = r.ManagerId,
                     managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
                     description = r.Description,
@@ -135,21 +135,24 @@ public class RequestsController : ControllerBase
                 createdAt = r.CreatedAt,
                 updatedAt = r.UpdatedAt,
                 userId = r.UserId,
-                userName = $"{r.User.FirstName} {r.User.LastName}",
-                userEmail = r.User.Email,
+                userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
+                userEmail = r.User != null ? r.User.Email : null,
                 managerId = r.ManagerId,
                 managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
                 managerEmail = r.Manager != null ? r.Manager.Email : null,
-                attachments = r.Attachments.Select(a => new { a.FileUrl, a.MimeType }),
-                notes = r.Notes.Select(n => new
-                {
-                    authorName = n.Author != null ? $"{n.Author.FirstName} {n.Author.LastName}" : null,
-                    n.Body,
-                    n.CreatedAt
-                })
+                attachments = (r.Attachments ?? new List<Attachment>())
+                                .Select(a => new { a.FileUrl, a.MimeType }),
+
+                notes = (r.Notes ?? new List<Note>())
+                    .Select(n => new
+                    {
+                        authorName = n.Author != null ? $"{n.Author.FirstName} {n.Author.LastName}" : null,
+                        n.Body,
+                        n.CreatedAt
+                    })
             })
             .FirstOrDefault();
-        if (userRole == "admin" || request.userId == clientId || request.managerId == clientId)
+        if (userRole == "admin" || request?.userId == clientId || request?.managerId == clientId)
             return Ok(request);
         return Forbid();
     }
@@ -160,49 +163,63 @@ public class RequestsController : ControllerBase
         var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
             return Unauthorized();
-        if (currentUserRole == "employee")
-        {
-            var matchingManager = _db.User
-                .Where(u => u.Role == "manager" && u.ManagerLimitPln >= request.amount_pln)
-                .OrderBy(u => u.ManagerLimitPln)
-                .FirstOrDefault();
 
-            int assignedManagerId;
-
-            if (matchingManager != null)
-            {
-                assignedManagerId = matchingManager.Id;
-            }
-            else
-            {
-                var admin = _db.User.FirstOrDefault(u => u.Role == "admin");
-                if (admin == null)
-                    return BadRequest("Brak dostępnego administratora.");
-                assignedManagerId = admin.Id;
-            }
-
-            var newRequest = new Request
-            {
-                Title = request.title,
-                Description = request.description,
-                AmountPln = request.amount_pln,
-                Reason = request.reason,
-                UserId = clientId,
-                Status = "czeka", // czeka, potwierdzono, odrzucono, zakupione.
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = null,
-                Attachments = new List<Attachment>(),
-                Notes = new List<Note>()
-            };
-
-            _db.Request.Add(newRequest);
-            _db.SaveChanges();
-
-            return Ok(new { success = true, requestId = newRequest.Id });
-        }
-        return Forbid("Tylko pracownicy moga skladac wnioski.");
-    }
+        if (currentUserRole != "employee")
+            return Forbid("Tylko pracownicy moga skladac wnioski.");
         
+        var matchingManager = _db.User
+            .Where(u => u.Role == "manager" && u.ManagerLimitPln >= request.amount_pln)
+            .OrderBy(u => u.ManagerLimitPln)
+            .FirstOrDefault();
+
+        int assignedManagerId;
+
+        if (matchingManager != null)
+        {
+            assignedManagerId = matchingManager.Id;
+        }
+        else
+        {
+            var admin = _db.User.FirstOrDefault(u => u.Role == "admin");
+            if (admin == null)
+                return BadRequest("Brak dostępnego administratora.");
+            assignedManagerId = admin.Id;
+        }
+        var attachments = new List<Attachment>();
+        if (!string.IsNullOrWhiteSpace(request.url))
+        {
+            var mimeType = GetMimeTypeFromUrl(request.url);
+            attachments.Add(new Attachment
+            {
+                FileUrl = request.url,
+                MimeType = mimeType
+            });
+        }
+
+        var newRequest = new Request
+        {
+            Title = request.title,
+            Description = request.description,
+            AmountPln = request.amount_pln,
+            Reason = request.reason,
+            UserId = clientId,
+            ManagerId = assignedManagerId,
+            Manager = _db.User.FirstOrDefault(u => u.Id == assignedManagerId) ?? throw new InvalidOperationException("Manager not found"),
+            Status = "czeka", // czeka, potwierdzono, odrzucono, zakupione.
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = null,
+            Attachments = attachments,
+            Notes = new List<Note>()
+        };
+
+        _db.Request.Add(newRequest);
+        _db.SaveChanges();
+
+        return Ok(new { success = true, requestId = newRequest.Id });
+        
+
+    }
+
     [HttpPut("{id}")]
     public IActionResult UpdateRequest(int id, [FromBody] UpdateRequest updateDto)
     {
@@ -223,7 +240,7 @@ public class RequestsController : ControllerBase
         {
             if (updateDto.AmountPln.Value <= 0)
                 return BadRequest("Kwota musi być większa od 0");
-    
+
             if (updateDto.AmountPln.Value > 100000)
                 return BadRequest("hola hola kolego to chyba trochę za dużo");
         }
@@ -248,5 +265,23 @@ public class RequestsController : ControllerBase
             updatedAt = request.UpdatedAt
         };
         return Ok(updatedRequest);
+    }
+
+    private string GetMimeTypeFromUrl(string url)
+    {
+        var extension = Path.GetExtension(url).ToLowerInvariant();
+        return extension switch
+        {
+            ".pdf" => "application/pdf",
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".doc" => "application/msword",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xls" => "application/vnd.ms-excel",
+            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".txt" => "text/plain",
+            _ => "application/octet-stream"
+        };
     }
 }
