@@ -221,39 +221,6 @@ public class UsersController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("{id}")]
-    public IActionResult GetUserById(int id)
-    {
-        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-        if (currentUserRole == null)
-            return Unauthorized();
-
-        var user = _db.User
-            .Where(u => u.Id == id)
-            .Select(u => new
-            {
-                Id = u.Id,
-                Role = u.Role,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                ManagerLimitPln = u.ManagerLimitPln
-            })
-            .FirstOrDefault();
-
-        if (user == null)
-            return NotFound();
-
-        if (currentUserRole == "admin" && user.Role != "manager")
-            return Forbid();
-
-        if (currentUserRole == "manager" && user.Role != "employee")
-            return Forbid();
-
-        return Ok(user);
-    }
-    
-    [Authorize]
     [HttpPatch("{id}")]
     public IActionResult UpdateUser(int id, [FromBody] UpdateUserRequest request)
     {

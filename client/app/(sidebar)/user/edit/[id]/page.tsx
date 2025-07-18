@@ -31,6 +31,9 @@ const FormSchema = z.object({
   lastname: z.string().min(1, {
     message: 'Nazwisko jest wymagane',
   }),
+  email: z.string().email({
+    message: 'Nieprawidłowy adres e-mail',
+  }),
   password: z.string().min(6, {
     message: 'Hasło musi mieć co najmniej 6 znaków',
   })
@@ -81,6 +84,7 @@ export default function InputForm() {
     defaultValues: {
       firstname: '',
       lastname: '',
+      email: '',
       password: '',
       confirmPassword: '',
       managerLimitPln: user?.role === 'admin' ? 0 : undefined,
@@ -93,6 +97,7 @@ export default function InputForm() {
       form.reset({
         firstname: user.firstName || '',
         lastname: user.lastName || '',
+        email: user.email || '',
         managerLimitPln: user.managerLimitPln || undefined,
       });
     })
@@ -142,6 +147,20 @@ export default function InputForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nazwisko</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Adres e-mail</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
