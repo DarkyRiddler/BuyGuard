@@ -18,7 +18,29 @@ public class UsersController : ControllerBase
     {
         this._db = db;
     }
-
+    [Authorize]
+	[HttpGet("{id}")]
+	public IActionResult GetUser(int id){
+		var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        if (currentUserRole == null)
+            return Unauthorized();
+        var user = _db.User.FirstOrDefault(u => u.Id == id);
+        if (user == null) return NotFound();
+        if (currentUserRole == "admin" && user.Role != "manager")
+            return Forbid();
+        if (currentUserRole == "manager" && user.Role != "employee")
+            return Forbid();
+        
+        return Ok(new
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role,
+            ManagerLimitPln = user.ManagerLimitPln
+        });
+    }
     [Authorize]
     [HttpGet]
     public IActionResult GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -199,39 +221,6 @@ public class UsersController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("{id}")]
-    public IActionResult GetUserById(int id)
-    {
-        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-        if (currentUserRole == null)
-            return Unauthorized();
-
-        var user = _db.User
-            .Where(u => u.Id == id)
-            .Select(u => new
-            {
-                Id = u.Id,
-                Role = u.Role,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                ManagerLimitPln = u.ManagerLimitPln
-            })
-            .FirstOrDefault();
-
-        if (user == null)
-            return NotFound();
-
-        if (currentUserRole == "admin" && user.Role != "manager")
-            return Forbid();
-
-        if (currentUserRole == "manager" && user.Role != "employee")
-            return Forbid();
-
-        return Ok(user);
-    }
-    
-    [Authorize]
     [HttpPatch("{id}")]
     public IActionResult UpdateUser(int id, [FromBody] UpdateUserRequest request)
     {
@@ -257,7 +246,17 @@ public class UsersController : ControllerBase
         {
             return Forbid("Tylko admin i menedżer mogą edytować użytkowników");
         }
-        
+
+        if (!string.IsNullOrEmpty(request.Email) && request.Email != userToUpdate.Email)
+        {
+            var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
+            if (existingUser != null)
+            {
+                return Conflict("Email jest już zajęty");
+            }
+
+            userToUpdate.Email = request.Email;
+        }
         if (!string.IsNullOrEmpty(request.FirstName))
         {
             userToUpdate.FirstName = request.FirstName;
