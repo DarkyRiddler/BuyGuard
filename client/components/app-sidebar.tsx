@@ -7,7 +7,6 @@ import {
   SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { icons } from 'lucide-react';
 import { List, User, UserRoundPlus, SquarePen } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import Link from 'next/link';
@@ -23,6 +22,11 @@ const links = [
     url: '/user/list',
     icon: List
   },
+  {
+    title: 'Lista zgłoszeń',
+    url: '/request/list',
+    icon: List
+  }
   {
     title: 'Zgłoszenia - dodanie',
     url: '/createrequest',
