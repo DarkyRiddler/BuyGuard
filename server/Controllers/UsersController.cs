@@ -149,7 +149,9 @@ public class UsersController : ControllerBase
             return Forbid();
 
         
-        _db.User.Remove(user);
+        user.IsDeleted = true;
+        _db.User.Update(user);
+        
         _db.SaveChanges();
         
         return Ok(new List<object>());
