@@ -5,6 +5,8 @@ using server.Data;
 using System.Text;
 using System.Globalization;
 
+// TODO chyba nie dokonczony jest ten eksporter nw robilem to w czwartek
+
 [ApiController]
 [Route("api/[controller]")]
 [Authorize] // tylko admin moze eksportować dane

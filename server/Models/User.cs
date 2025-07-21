@@ -20,4 +20,5 @@ public class User
     public ICollection<Request>? Requests { get; set; }
     public ICollection<Request>? ManagedRequests { get; set; }
     public ICollection<Note>? Notes { get; set; }
+    public bool IsDeleted { get; set; } = false;
 }
