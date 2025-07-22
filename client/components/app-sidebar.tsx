@@ -7,7 +7,7 @@ import {
   SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { List, User, UserRoundPlus } from 'lucide-react';
+import { List, User, UserRoundPlus, SquarePen } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import Link from 'next/link';
 
@@ -21,6 +21,16 @@ const links = [
     title: 'Użytkownicy',
     url: '/user/list',
     icon: List
+  },
+  {
+    title: 'Zgłoszenia',
+    url: '/request',
+    icon: List
+  },
+  {
+    title: 'Zgłoszenia - edycja',
+    url: '/editrequest',
+    icon: SquarePen
   },
 ];
 
