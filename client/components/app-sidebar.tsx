@@ -7,7 +7,8 @@ import {
   SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { List, User, UserRoundPlus, SquarePen } from 'lucide-react';
+import { icons } from 'lucide-react';
+import { List, User, UserRoundPlus } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import Link from 'next/link';
 
@@ -47,7 +48,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {links.map((link) => (
                 <SidebarMenuItem key={link.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton className = 'text-xl' asChild>
                     <Link href={link.url}>
                       {link.icon && <link.icon/>}
                       <span>{link.title}</span>

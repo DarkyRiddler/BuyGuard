@@ -25,12 +25,12 @@ public class UsersController : ControllerBase
         if (currentUserRole == null)
             return Unauthorized();
         var user = _db.User.FirstOrDefault(u => u.Id == id);
-        if (user == null) return NotFound();
+        if (user == null || user.IsDeleted)
+            return NotFound();
         if (currentUserRole == "admin" && user.Role != "manager")
             return Forbid();
         if (currentUserRole == "manager" && user.Role != "employee")
             return Forbid();
-        
         return Ok(new
         {
             Id = user.Id,
@@ -51,7 +51,7 @@ public class UsersController : ControllerBase
         if (given_role == "admin")
         {
             usersQuery = _db.User
-                .Where(u => u.Role == "manager")
+                .Where(u => u.Role == "manager" && u.IsDeleted == false)
                 .Select(u => new
                 {
                     Id = u.Id,
@@ -65,7 +65,7 @@ public class UsersController : ControllerBase
         else if (given_role == "manager")
         {
             usersQuery = _db.User
-                .Where(u => u.Role == "employee")
+                .Where(u => u.Role == "employee" && u.IsDeleted == false)
                 .Select(u => new
                 {
                     Id = u.Id,
@@ -112,9 +112,10 @@ public class UsersController : ControllerBase
         if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
 
         var user = _db.User
-            .Where(u => u.Id == userId)
+            .Where(u => u.Id == userId && u.IsDeleted == false)
             .Select(u => new
             {
+                Id = u.Id,
                 Role = u.Role,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
@@ -139,7 +140,7 @@ public class UsersController : ControllerBase
 
         var user = _db.User.FirstOrDefault(u => u.Id == id);
         
-        if (user == null)
+        if (user == null || user.IsDeleted == true)
             return NotFound();
 
         if (currentUserRole == "admin" && user.Role != "manager")
@@ -149,7 +150,9 @@ public class UsersController : ControllerBase
             return Forbid();
 
         
-        _db.User.Remove(user);
+        user.IsDeleted = true;
+        _db.User.Update(user);
+        
         _db.SaveChanges();
         
         return Ok(new List<object>());
@@ -231,7 +234,7 @@ public class UsersController : ControllerBase
 
         var userToUpdate = _db.User.FirstOrDefault(u => u.Id == id);
         
-        if (userToUpdate == null)
+        if (userToUpdate == null || userToUpdate.IsDeleted == true)
             return NotFound("Użytknownik not found!");
         
         if (currentUserRole == "admin" && userToUpdate.Role != "manager")

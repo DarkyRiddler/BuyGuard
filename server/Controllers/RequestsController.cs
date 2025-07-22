@@ -186,39 +186,46 @@ public class RequestsController : ControllerBase
 
         var request = _db.Request
             .Where(r => r.Id == id)
-            .Select(r => new
-            {
-                id = r.Id,
-                title = r.Title,
-                description = r.Description,
-                amountPln = r.AmountPln,
-                reason = r.Reason,
-                status = r.Status,
-                aiScore = r.AiScore,
-                createdAt = r.CreatedAt,
-                updatedAt = r.UpdatedAt,
-                userId = r.UserId,
-                userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
-                userEmail = r.User != null ? r.User.Email : null,
-                managerId = r.ManagerId,
-                managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
-                managerEmail = r.Manager != null ? r.Manager.Email : null,
-                attachments = (r.Attachments ?? new List<Attachment>())
-                                .Select(a => new { a.FileUrl, a.MimeType }),
-
-                notes = (r.Notes ?? new List<Note>())
-                    .Select(n => new
-                    {
-                        authorName = n.Author != null ? $"{n.Author.FirstName} {n.Author.LastName}" : null,
-                        n.Body,
-                        n.CreatedAt
-                    })
-            })
+            .Include(r => r.User)
+            .Include(r => r.Manager)
+            .Include(r => r.Attachments)
+            .Include(r => r.Notes)
+                .ThenInclude(n => n.Author)
             .FirstOrDefault();
-        if (userRole == "admin" || request?.userId == clientId || request?.managerId == clientId)
-            return Ok(request);
-        return Forbid();
+
+        if (request == null)
+            return NotFound();
+
+        if (userRole != "admin" && request.UserId != clientId && request.ManagerId != clientId)
+            return Forbid();
+
+        return Ok(new
+        {
+            id = request.Id,
+            title = request.Title,
+            description = request.Description,
+            amountPln = request.AmountPln,
+            reason = request.Reason,
+            status = request.Status,
+            aiScore = request.AiScore,
+            createdAt = request.CreatedAt,
+            updatedAt = request.UpdatedAt,
+            userId = request.UserId,
+            userName = request.User != null ? $"{request.User.FirstName} {request.User.LastName}" : null,
+            userEmail = request.User?.Email,
+            managerId = request.ManagerId,
+            managerName = request.Manager != null ? $"{request.Manager.FirstName} {request.Manager.LastName}" : null,
+            managerEmail = request.Manager?.Email,
+            attachments = request.Attachments?.Select(a => new { a.FileUrl, a.MimeType }).ToList(),
+            notes = request.Notes?.Select(n => new
+            {
+                authorName = n.Author != null ? $"{n.Author.FirstName} {n.Author.LastName}" : null,
+                n.Body,
+                n.CreatedAt
+            }).ToList()
+        });
     }
+
     [HttpPost]
     public IActionResult CreateRequest([FromBody] CreateRequest request)
     {
