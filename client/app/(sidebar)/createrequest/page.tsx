@@ -1,7 +1,5 @@
 'use client';
 
-import { cookies } from 'next/headers';
-import { User } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
@@ -43,27 +41,7 @@ const FormSchema = z.object({
 
 
 
-export default async function InputForm() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('jwt')?.value;
-
-  const roles: Record<string, string> = {
-    'admin': 'Administrator',
-    'manager': 'Manager',
-    'employee': 'Użytkownik',
-  };
-  
-  try {
-    const { data } = await axios.get('/api/Users/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const user: User = data.user;
-  }
-  catch{
-    console.log('nie dziala');
-  } 
+export default function InputForm() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
