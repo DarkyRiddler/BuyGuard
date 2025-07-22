@@ -42,19 +42,19 @@ export default function DeleteButton({ userId }: DeleteButtonProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="w-full bg-red-600 hover:bg-red-700">
+        <Button className="w-full text-slate-200 bg-red-700 hover:bg-red-300">
           Usuń
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="dark:bg-gray-950">
         <DialogHeader>
           <DialogTitle>Potwierdzenie usunięcia</DialogTitle>
           <DialogDescription>
             Czy na pewno chcesz usunąć tego użytkownika? Tej operacji nie można cofnąć.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex justify-end gap-2 pt-4">
-          <DialogClose>
+        <DialogFooter className="flex justify-end gap-3 pt-3">
+          <DialogClose className="cursor-pointer bg-slate-800 rounded-md">
             Anuluj
           </DialogClose>
           <Button className="bg-red-600 hover:bg-red-700" onClick={handleDelete}>
