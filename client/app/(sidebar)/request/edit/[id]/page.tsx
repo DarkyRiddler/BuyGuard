@@ -34,6 +34,7 @@ const FormSchema = z.object({
   }),
   reason: z.string().min(1,{
     message: 'Uzasadnienie jest wymagane',
+  }),
   link: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
   });
 
