@@ -17,7 +17,7 @@ export default async function RootLayout({
     return (
       <SidebarProvider>
         <AppSidebar/>
-        <main className="flex flex-col items-center justify-center min-h-screen w-full">
+        <main className="flex flex-col items-center justify-center min-h-screen w-full p-5">
           {children}
         </main>
       </SidebarProvider>
