@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -18,20 +18,23 @@ import { Input } from '@/components/ui/input';
 import axios from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import {Textarea} from '@/components/ui/textarea';
+import { Request } from '@/types';
 
 const FormSchema = z.object({
   title: z.string().min(1, {
     message: 'Tytuł jest wymagany',
   }),
-  price: z.preprocess((val) => Number(val), z.number()
-    .max(100000, { message: 'Kwota musi być mniejsza lub równa 100 000 zł' })
+  amount_pln: z.preprocess((val) => parseFloat(z.string().parse(val)),
+    z.number().max(100000, { message: 'Kwota musi być mniejsza lub równa 100 000 zł' })
     .min(1, { message: 'Kwota musi być większa od zera' })
   ),
   description: z.string().min(1,{
     message: 'Opis jest wymagany',
   }),
-  image: z.any().optional(),
-  link: z.string().url({ message: 'Podaj poprawny adres URL' }),
+  reason: z.string().min(1,{
+    message: 'Uzasadnienie jest wymagane',
+  link: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
   });
 
 
@@ -43,21 +46,24 @@ export default function InputForm() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: '',
-      price: 0,
+      amount_pln: 0,
       description: '',
+      reason: '',
       link: '',
     },
   });
+
 
    useEffect(() => {
     async function fetchRequest(id: string) {
       try {
         const res = await axios.get(`/api/Requests/${id}`);
         form.reset({
-          title: res.data.title || '',
-          price: res.data.price || '',
-          description: res.data.description || '',
-          //link: res.link || '',
+                title: res.data.title || '',
+                amount_pln: res.data.amount_pln || 0,
+                description: res.data.description || '',
+                reason: res.data.reason || '',
+                link: res.data.link || '',
         });
       } catch (error) {
         console.error('Błąd pobierania zgłoszenia:', error);
@@ -99,7 +105,7 @@ export default function InputForm() {
           />
           <FormField
             control={form.control}
-            name="price"
+            name="amount_pln"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cena:</FormLabel>
@@ -118,7 +124,21 @@ export default function InputForm() {
               <FormItem>
                 <FormLabel>Opis:</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Textarea {...field} />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="reason"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Uzasadnienie:</FormLabel>
+                <FormControl>
+                  < Textarea {...field} />
+
                 </FormControl>
                 <FormMessage/>
               </FormItem>
@@ -131,7 +151,7 @@ export default function InputForm() {
               <FormItem>
                 <FormLabel>Link:</FormLabel>
                 <FormControl>
-                  <Input type="url" {...field} />
+                 <Input type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
