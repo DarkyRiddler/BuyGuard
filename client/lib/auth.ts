@@ -16,7 +16,7 @@ export async function getUserFromCookie() {
   if (!token) return null;
 
   try {
-    const payload: JwtPayload = jwt.verify(token, process.env.JWT_SECRET!);
+    const payload: JwtPayload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     const user = {
       id: payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"],
       email: payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"],

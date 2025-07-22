@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
 import axios from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import {Textarea} from '@/components/ui/textarea';
@@ -56,13 +54,9 @@ export default function InputForm() {
 
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    console.log(data);
-    const { ...sanitizedData } = data;
-
     try {
-      await axios.post('api/Requests', sanitizedData);
-      toast.success('Konto zostało pomyślnie utworzone');
+      await axios.post('api/Requests', data);
+      toast.success('Zgłoszenie zostało pomyślnie utworzone');
     } catch (error) {
       if (isAxiosError(error)) {
         if (isAxiosError(error)) {

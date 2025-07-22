@@ -15,14 +15,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
 import axios from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import {Textarea} from '@/components/ui/textarea';
 import { Request } from '@/types';
-
-
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -37,16 +34,14 @@ const FormSchema = z.object({
   }),
   reason: z.string().min(1,{
     message: 'Uzasadnienie jest wymagane',
-  }),
   link: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
   });
 
 
 
 export default function InputForm() {
-    const params = useParams();
-    const id = params.id as string;
-    console.log(id);
+  const params = useParams();
+  const id = params.id as string;
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -58,40 +53,32 @@ export default function InputForm() {
     },
   });
 
-     useEffect(() => {
-       async function fetchRequest(id: string){
-        try{
-            const res = await axios.get(`/api/Requests/${id}`);
-            form.reset({
+
+   useEffect(() => {
+    async function fetchRequest(id: string) {
+      try {
+        const res = await axios.get(`/api/Requests/${id}`);
+        form.reset({
                 title: res.data.title || '',
                 amount_pln: res.data.amount_pln || 0,
                 description: res.data.description || '',
                 reason: res.data.reason || '',
                 link: res.data.link || '',
-            });
-       }
-       catch(error)  {
-         console.error('Error fetching request:', error);
-         toast.error('Nie udało się pobrać danych zgłoszenia');
-       }
+        });
+      } catch (error) {
+        console.error('Błąd pobierania zgłoszenia:', error);
+        toast.error('Nie udało się załadować zgłoszenia');
+      }
     }
-       fetchRequest(id);
-     }, [id, form]);
+
+    fetchRequest(id);
+  }, [id, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {  ...sanitizedData } = data;
-    toast('You submitted the following values', {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-    
     try {
-      const res = await axios.put('api/Users/${USER_ID}', sanitizedData);
+      const res = await axios.put(`api/Requests/${id}`, data);
       console.log('Response from server:', res);
+      toast.success('Twoje zgłoszenie zostało pomyślnie zaktualizowane.')
     } catch (error) {
       console.error(error);
     }
@@ -151,6 +138,7 @@ export default function InputForm() {
                 <FormLabel>Uzasadnienie:</FormLabel>
                 <FormControl>
                   < Textarea {...field} />
+
                 </FormControl>
                 <FormMessage/>
               </FormItem>
@@ -163,7 +151,7 @@ export default function InputForm() {
               <FormItem>
                 <FormLabel>Link:</FormLabel>
                 <FormControl>
-                  <Input type="text" {...field} />
+                 <Input type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
