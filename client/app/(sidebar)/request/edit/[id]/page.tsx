@@ -59,9 +59,10 @@ export default function InputForm() {
     async function fetchRequest(id: string) {
       try {
         const res = await axios.get(`/api/Requests/${id}`);
+        console.log(res);
         form.reset({
                 title: res.data.title || '',
-                amount_pln: res.data.amount_pln || 0,
+                amount_pln: res.data.amountPln || 0,
                 description: res.data.description || '',
                 reason: res.data.reason || '',
                 link: res.data.link || '',
