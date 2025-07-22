@@ -26,7 +26,7 @@ const links = [
     title: 'Lista zgłoszeń',
     url: '/request/list',
     icon: List
-  }
+  },
   {
     title: 'Zgłoszenia - dodanie',
     url: '/createrequest',
