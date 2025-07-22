@@ -30,23 +30,23 @@ export default async function Account() {
     const user: User = data.user;
 
     return (
-      <Card className={'min-w-100'}>
+      <Card className={'min-w-150'}>
         <CardHeader>
           <CardTitle className={'mx-auto text-2xl'}><span
-            className="font-bold text-gray-700">{user.firstName} {user.lastName}</span></CardTitle>
+            className="font-bold text-slate-950 dark:text-sky-50">{user.firstName} {user.lastName}</span></CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full text-2xl mb-5">
             <div className="flex justify-between">
-              <span className="font-semibold text-gray-700">Adres e-mail: </span>
+              <span className="font-semibold text-slate-950 dark:text-sky-50">Adres e-mail: </span>
               <span>{user.email}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-semibold text-gray-700">Rola: </span>
+              <span className="font-semibold text-slate-950 dark:text-sky-50">Rola: </span>
               <span className="capitalize">{roles[user.role]}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-semibold text-gray-700">Limit: </span>
+              <span className="font-semibold text-slate-950 dark:text-sky-50">Limit: </span>
               <span className="capitalize">{user.managerLimitPln}</span>
             </div>
           </div>
