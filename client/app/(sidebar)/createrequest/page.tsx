@@ -19,6 +19,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import axios from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import {Textarea} from '@/components/ui/textarea';
+import { isAxiosError } from 'axios';
 
 
 
@@ -26,8 +27,8 @@ const FormSchema = z.object({
   title: z.string().min(1, {
     message: 'Tytuł jest wymagany',
   }),
-  price: z.preprocess((val) => Number(val), z.number()
-    .max(100000, { message: 'Kwota musi być mniejsza lub równa 100 000 zł' })
+  amount_pln: z.preprocess((val) => parseFloat(z.string().parse(val)),
+    z.number().max(100000, { message: 'Kwota musi być mniejsza lub równa 100 000 zł' })
     .min(1, { message: 'Kwota musi być większa od zera' })
   ),
   description: z.string().min(1,{
@@ -46,49 +47,30 @@ export default function InputForm() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: '',
-      price: 0,
+      amount_pln: 0,
       description: '',
       reason: '',
       link: '',
     },
   });
 
-  const USER_ID = 1;
-
-   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await axios.get('/api/Users/${USER_ID}');
-        form.reset({
-          title: res.data.title || '',
-          price: res.data.price || '',
-          description: res.data.description || '',
-        });
-      } catch (error) {
-        console.error('Błąd pobierania użytkownika:', error);
-        toast.error('Nie udało się załadować danych użytkownika');
-      }
-    }
-
-    fetchUser();
-  }, [form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {  ...sanitizedData } = data;
-    toast('You submitted the following values', {
-      description: (
-        <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
-    
+    console.log(data);
+    const { ...sanitizedData } = data;
+
     try {
-      const res = await axios.put('api/Users/${USER_ID}', sanitizedData);
-      console.log('Response from server:', res);
+      await axios.post('api/Requests', sanitizedData);
+      toast.success('Konto zostało pomyślnie utworzone');
     } catch (error) {
-      console.error(error);
+      if (isAxiosError(error)) {
+        if (isAxiosError(error)) {
+          toast.error(error.response?.data ?? 'Wystąpił nieznany błąd');
+        } else {
+          toast.error('Wystąpił błąd połączenia');
+        }
+      }
     }
   }
 
@@ -113,7 +95,7 @@ export default function InputForm() {
           />
           <FormField
             control={form.control}
-            name="price"
+            name="amount_pln"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cena:</FormLabel>
