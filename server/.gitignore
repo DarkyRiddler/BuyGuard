@@ -1,7 +1,7 @@
 # Build folders
 bin/
 obj/
-
+Migrations/
 # Visual Studio project files
 *.user
 *.suo
