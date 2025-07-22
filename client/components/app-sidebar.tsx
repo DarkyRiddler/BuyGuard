@@ -23,6 +23,16 @@ const links = [
     url: '/user/list',
     icon: List
   },
+  {
+    title: 'Zgłoszenia',
+    url: '/request',
+    icon: List
+  },
+  {
+    title: 'Zgłoszenia - edycja',
+    url: '/editrequest',
+    icon: SquarePen
+  },
 ];
 
 export function AppSidebar() {
