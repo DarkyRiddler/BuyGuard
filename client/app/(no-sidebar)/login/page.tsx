@@ -19,7 +19,6 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import axios from '@/lib/utils';
 import { isAxiosError } from 'axios';
-import { useRouter } from 'next/navigation';
 
 const FormSchema = z.object({
   email: z.string().email({
@@ -31,8 +30,6 @@ const FormSchema = z.object({
 });
 
 export default function InputForm() {
-  const router = useRouter();
-  
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -45,7 +42,7 @@ export default function InputForm() {
     try {
       await axios.post('auth/login', data);
       toast.success('Zalogowano pomyślnie');
-      setTimeout(() => router.push('/'), 1000);
+      setTimeout(() => window.location.href = '/', 1000);
     } catch (error) {
       if (isAxiosError(error)) {
         if (isAxiosError(error)) {

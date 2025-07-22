@@ -8,26 +8,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { User } from '@/types';
-import ResetPasswordDialog from '@/components/reset-password-dialog';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import ResetPasswordDialog from '@/components/forms/reset-password-dialog';
 import { LogoutButton } from '@/components/buttons/logout';
 
 export default async function Account() {
   const cookieStore = await cookies();
   const token = cookieStore.get('jwt')?.value;
-
-  if (!token) {
-    return (
-      <div className="space-y-2">
-        <p className="text-red-500">Brak tokena – nie zalogowano.</p>
-        <Button asChild className="w-full">
-          <Link href="/login">Zaloguj się</Link>
-        </Button>
-      </div>
-    )
-      ;
-  }
 
   const roles: Record<string, string> = {
     'admin': 'Administrator',
@@ -67,7 +53,7 @@ export default async function Account() {
         </CardContent>
         <CardFooter className="flex flex-col items-center space-y-2">
           <ResetPasswordDialog/>
-          <LogoutButton redirect={'/'}/>
+          <LogoutButton/>
         </CardFooter>
       </Card>
     );

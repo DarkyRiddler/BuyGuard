@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/pagination';
 import axios from '@/lib/utils';
 import DeleteButton from '@/components/buttons/deleteuser';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 interface User {
     id: number;
@@ -41,6 +43,7 @@ interface PaginatedResponse {
 }
 
 export default function UserList() {
+    const router = useRouter();
     const [users, setUsers] = useState<User[]>([]);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const [loading, setLoading] = useState(true);
@@ -239,6 +242,13 @@ export default function UserList() {
                                             {user.managerLimitPln ? `${user.managerLimitPln.toLocaleString()} PLN` : '-'}
                                         </TableCell>
                                     )}
+                                    <TableCell>
+                                        <Button onClick={() => {
+                                            router.push(`/user/edit/${user.id}`);
+                                        }}>
+                                            Edytuj
+                                        </Button>
+                                    </TableCell>
                                     <TableCell><DeleteButton userId={user.id}/></TableCell>
                                 </TableRow>
                             ))

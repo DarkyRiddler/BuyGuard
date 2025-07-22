@@ -18,7 +18,29 @@ public class UsersController : ControllerBase
     {
         this._db = db;
     }
-
+    [Authorize]
+	[HttpGet("{id}")]
+	public IActionResult GetUser(int id){
+		var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        if (currentUserRole == null)
+            return Unauthorized();
+        var user = _db.User.FirstOrDefault(u => u.Id == id);
+        if (user == null || user.IsDeleted)
+            return NotFound();
+        if (currentUserRole == "admin" && user.Role != "manager")
+            return Forbid();
+        if (currentUserRole == "manager" && user.Role != "employee")
+            return Forbid();
+        return Ok(new
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Role = user.Role,
+            ManagerLimitPln = user.ManagerLimitPln
+        });
+    }
     [Authorize]
     [HttpGet]
     public IActionResult GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -29,7 +51,7 @@ public class UsersController : ControllerBase
         if (given_role == "admin")
         {
             usersQuery = _db.User
-                .Where(u => u.Role == "manager")
+                .Where(u => u.Role == "manager" && u.IsDeleted == false)
                 .Select(u => new
                 {
                     Id = u.Id,
@@ -43,7 +65,7 @@ public class UsersController : ControllerBase
         else if (given_role == "manager")
         {
             usersQuery = _db.User
-                .Where(u => u.Role == "employee")
+                .Where(u => u.Role == "employee" && u.IsDeleted == false)
                 .Select(u => new
                 {
                     Id = u.Id,
@@ -90,7 +112,7 @@ public class UsersController : ControllerBase
         if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
 
         var user = _db.User
-            .Where(u => u.Id == userId)
+            .Where(u => u.Id == userId && u.IsDeleted == false)
             .Select(u => new
             {
                 Role = u.Role,
@@ -117,7 +139,7 @@ public class UsersController : ControllerBase
 
         var user = _db.User.FirstOrDefault(u => u.Id == id);
         
-        if (user == null)
+        if (user == null || user.IsDeleted == true)
             return NotFound();
 
         if (currentUserRole == "admin" && user.Role != "manager")
@@ -127,7 +149,9 @@ public class UsersController : ControllerBase
             return Forbid();
 
         
-        _db.User.Remove(user);
+        user.IsDeleted = true;
+        _db.User.Update(user);
+        
         _db.SaveChanges();
         
         return Ok(new List<object>());
@@ -197,7 +221,7 @@ public class UsersController : ControllerBase
 
         return CreatedAtAction(nameof(GetUsers), response);
     }
-
+    
     [Authorize]
     [HttpPatch("{id}")]
     public IActionResult UpdateUser(int id, [FromBody] UpdateUserRequest request)
@@ -209,7 +233,7 @@ public class UsersController : ControllerBase
 
         var userToUpdate = _db.User.FirstOrDefault(u => u.Id == id);
         
-        if (userToUpdate == null)
+        if (userToUpdate == null || userToUpdate.IsDeleted == true)
             return NotFound("Użytknownik not found!");
         
         if (currentUserRole == "admin" && userToUpdate.Role != "manager")
@@ -224,7 +248,17 @@ public class UsersController : ControllerBase
         {
             return Forbid("Tylko admin i menedżer mogą edytować użytkowników");
         }
-        
+
+        if (!string.IsNullOrEmpty(request.Email) && request.Email != userToUpdate.Email)
+        {
+            var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
+            if (existingUser != null)
+            {
+                return Conflict("Email jest już zajęty");
+            }
+
+            userToUpdate.Email = request.Email;
+        }
         if (!string.IsNullOrEmpty(request.FirstName))
         {
             userToUpdate.FirstName = request.FirstName;

@@ -26,7 +26,7 @@ export default function DeleteButton({ userId }: DeleteButtonProps) {
     try {
       await axios.delete(`api/Users/${userId}`,);
       toast.success('Usunięto użytkownika pomyślnie');
-      setTimeout(() => router.refresh(), 1000);
+      setTimeout(() => router.refresh(), 1000); // nie działa idk
     } catch (error) {
       if (isAxiosError(error)) {
         if (isAxiosError(error)) {
