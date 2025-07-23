@@ -23,12 +23,17 @@ const links = [
     url: '/user/list',
     icon: Users
   },
-  //KIEDY BEDZIE GOTOWE, ODKOMENTUJCIE (seba nie gniewaj sie)
-  //{
-  //  title: 'Zgłoszenia',
-  //  url: '/requestlist',
-  //  icon: List
-  //},
+  {
+    title: 'Lista zgłoszeń',
+    url: '/request/list',
+    icon: List
+  },
+  {
+    title: 'Dodaj zgłoszenie', // pozniej ogarne conditional rendering
+    url: '/request/create',
+    icon: List
+  },
+
 ];
 
 export function AppSidebar() {

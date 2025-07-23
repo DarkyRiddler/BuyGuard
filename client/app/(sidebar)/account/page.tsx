@@ -30,7 +30,9 @@ export default async function Account() {
     const user: User = data.user;
 
     return (
+
       <Card className={'min-w-150'}>
+
         <CardHeader>
           <CardTitle className={'mx-auto text-2xl'}><span
             className="font-bold text-slate-950 dark:text-sky-50">{user.firstName} {user.lastName}</span></CardTitle>

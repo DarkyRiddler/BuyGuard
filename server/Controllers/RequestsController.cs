@@ -149,6 +149,7 @@ public class RequestsController : ControllerBase
                 managerId = r.ManagerId,
                 managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
                 description = r.Description,
+                url = r.Url,
                 amountPln = r.AmountPln,
                 reason = r.Reason,
                 status = r.Status,
@@ -204,6 +205,7 @@ public class RequestsController : ControllerBase
             id = request.Id,
             title = request.Title,
             description = request.Description,
+            url = request.Url,
             amountPln = request.AmountPln,
             reason = request.Reason,
             status = request.Status,
@@ -255,21 +257,12 @@ public class RequestsController : ControllerBase
                 return BadRequest("Brak dostępnego administratora.");
             assignedManagerId = admin.Id;
         }
-        var attachments = new List<Attachment>();
-        if (!string.IsNullOrWhiteSpace(request.url))
-        {
-            var mimeType = GetMimeTypeFromUrl(request.url);
-            attachments.Add(new Attachment
-            {
-                FileUrl = request.url,
-                MimeType = mimeType
-            });
-        }
 
         var newRequest = new Request
         {
             Title = request.title,
             Description = request.description,
+            Url = request.url,
             AmountPln = request.amount_pln,
             Reason = request.reason,
             UserId = clientId,
@@ -278,7 +271,7 @@ public class RequestsController : ControllerBase
             Status = "czeka", // czeka, potwierdzono, odrzucono, zakupione.
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null,
-            Attachments = attachments,
+            Attachments = new List<Attachment>(),
             Notes = new List<Note>()
         };
 
@@ -336,23 +329,23 @@ public class RequestsController : ControllerBase
     }
 
 
-    private string GetMimeTypeFromUrl(string url)
-    {
-        var extension = Path.GetExtension(url).ToLowerInvariant();
-        return extension switch
-        {
-            ".pdf" => "application/pdf",
-            ".jpg" => "image/jpeg",
-            ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".doc" => "application/msword",
-            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            ".xls" => "application/vnd.ms-excel",
-            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            ".txt" => "text/plain",
-            _ => "application/octet-stream"
-        };
-    }
+    // private string GetMimeTypeFromUrl(string url)
+    // {
+    //     var extension = Path.GetExtension(url).ToLowerInvariant();
+    //     return extension switch
+    //     {
+    //         ".pdf" => "application/pdf",
+    //         ".jpg" => "image/jpeg",
+    //         ".jpeg" => "image/jpeg",
+    //         ".png" => "image/png",
+    //         ".doc" => "application/msword",
+    //         ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    //         ".xls" => "application/vnd.ms-excel",
+    //         ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    //         ".txt" => "text/plain",
+    //         _ => "application/octet-stream"
+    //     };
+    // }
     [HttpPatch("{id}/status")]
     public IActionResult UpdateRequestStatus(int id, [FromBody] UpdateRequestStatusDTO statusDto)
     {

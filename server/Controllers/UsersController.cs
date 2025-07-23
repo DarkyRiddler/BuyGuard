@@ -115,6 +115,7 @@ public class UsersController : ControllerBase
             .Where(u => u.Id == userId && u.IsDeleted == false)
             .Select(u => new
             {
+                Id = u.Id,
                 Role = u.Role,
                 FirstName = u.FirstName,
                 LastName = u.LastName,
