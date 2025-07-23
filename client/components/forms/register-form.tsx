@@ -92,12 +92,12 @@ export default function RegisterForm() {
 
   return (
     <Form {...form}>
-      <div className="relative w-1/3 ">
+      <div className="relative w-1/3">
         <h1
-          className="absolute bottom-20 w-1/1 text-4xl text-slate-900 dark:text-yellow-600 font-bold text-center"> BuyGuard
+          className="absolute bottom-20 w-1/1 text-4xl text-slate-900 dark:text-yellow-600 font-medium text-center font-serif"> BuyGuard
         </h1>
 
-        <h2 className="absolute bottom-10 w-1/1 text-2xl text-slate-900 dark:text-sky-50 font bold text-center">Stwórz
+        <h2 className="absolute bottom-10 w-1/1 text-2xl text-slate-900 dark:text-sky-50 font-medium text-center">Stwórz
           konto</h2>
       </div>
 
