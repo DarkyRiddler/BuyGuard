@@ -19,14 +19,14 @@ public class NotesController : ControllerBase
     }
 
     [HttpPost("requests/{requestId}")]
-    public IActionResult CreateNote(int requestId, [FromBody] CreateNoteRequest request)
+    public async Task<IActionResult> CreateNoteAsync(int requestId, [FromBody] CreateNoteRequest request)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var requestEntity = _db.Request.FirstOrDefault(r => r.Id == requestId);
+        var requestEntity = await _db.Request.FirstOrDefaultAsync(r => r.Id == requestId);
         if (requestEntity == null)
             return NotFound("Zgłoszenie nie istnieje");
 
@@ -41,31 +41,31 @@ public class NotesController : ControllerBase
             CreatedAt = DateTime.UtcNow
         };
 
-        _db.Note.Add(newNote);
-        _db.SaveChanges();
+        await _db.Note.AddAsync(newNote);
+        await _db.SaveChangesAsync();
 
         return Ok(new
         {
             success = true,
-            message = "Dodano notsa",
+            message = "Dodano notatkę",
             noteId = newNote.Id
         });
     }
 
     [HttpGet("requests/{requestId}")]
-    public IActionResult GetRequestNotes(int requestId)
+    public async Task<IActionResult> GetRequestNotesAsync(int requestId)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var requestEntity = _db.Request
+        var requestEntity = await _db.Request
             .Include(r => r.Notes!)
             .ThenInclude(n => n.Author)
-            .FirstOrDefault(r => r.Id == requestId);
+            .FirstOrDefaultAsync(r => r.Id == requestId);
 
-        if (requestEntity == null) 
+        if (requestEntity == null)
             return NotFound("Zgłoszenie nie istnieje");
 
         if (userRole != "admin" && requestEntity.UserId != userId && requestEntity.ManagerId != userId)
@@ -87,19 +87,19 @@ public class NotesController : ControllerBase
 
         return Ok(notes);
     }
-    
+
     [HttpGet("{noteId}")]
-    public IActionResult GetNote(int noteId)
+    public async Task<IActionResult> GetNoteAsync(int noteId)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var note = _db.Note
+        var note = await _db.Note
             .Include(n => n.Author)
             .Include(n => n.Request)
-            .FirstOrDefault(n => n.Id == noteId);
+            .FirstOrDefaultAsync(n => n.Id == noteId);
 
         if (note == null)
             return NotFound("Notatka nie istnieje");
@@ -121,18 +121,18 @@ public class NotesController : ControllerBase
             }
         });
     }
-
+    
     [HttpPut("{noteId}")]
-    public IActionResult UpdateNote(int noteId, [FromBody] UpdateNoteRequest request)
+    public async Task<IActionResult> UpdateNoteAsync(int noteId, [FromBody] UpdateNoteRequest request)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var note = _db.Note
+        var note = await _db.Note
             .Include(n => n.Request)
-            .FirstOrDefault(n => n.Id == noteId);
+            .FirstOrDefaultAsync(n => n.Id == noteId);
 
         if (note == null)
             return NotFound("Notatka nie istnieje");
@@ -144,64 +144,64 @@ public class NotesController : ControllerBase
             return Forbid("Możesz edytować tylko swoje notatki");
 
         note.Body = request.Body;
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         return Ok(new
         {
             success = true,
-            message = "Zaktualizowano notsa"
+            message = "Zaktualizowano notatkę"
         });
     }
 
     [HttpDelete("{noteId}")]
-    public IActionResult DeleteNote(int noteId)
+    public async Task<IActionResult> DeleteNoteAsync(int noteId)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var note = _db.Note
+        var note = await _db.Note
             .Include(n => n.Request)
-            .FirstOrDefault(n => n.Id == noteId);
+            .FirstOrDefaultAsync(n => n.Id == noteId);
 
         if (note == null)
             return NotFound("Notatka nie istnieje");
 
         if (userRole != "admin" && note.Request?.UserId != userId && note.Request?.ManagerId != userId)
             return Forbid("Brak uprawnień do tego zgłoszenia");
-        
+
         if (note.AuthorId != userId)
             return Forbid("Możesz usuwać tylko swoje notatki");
 
         _db.Note.Remove(note);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         return Ok(new
         {
             success = true,
-            message = "Usunieto notsa"
+            message = "Usunięto notatkę"
         });
     }
-    
+
     [HttpPatch("requests/{requestId}")]
-    public IActionResult UpdateRequestNote(int requestId, [FromBody] UpdateNoteRequest request)
+    public async Task<IActionResult> UpdateRequestNoteAsync(int requestId, [FromBody] UpdateNoteRequest request)
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var requestEntity = _db.Request
+        var requestEntity = await _db.Request
             .Include(r => r.Notes)
-            .FirstOrDefault(r => r.Id == requestId);
+            .FirstOrDefaultAsync(r => r.Id == requestId);
 
         if (requestEntity == null)
             return NotFound("Zgłoszenie nie istnieje");
 
         if (userRole != "admin" && requestEntity.UserId != userId && requestEntity.ManagerId != userId)
             return Forbid("Brak uprawnień do edycji notatki zgłoszenia");
-        
+
         var existingNote = requestEntity.Notes?
             .Where(n => n.AuthorId == userId)
             .OrderByDescending(n => n.CreatedAt)
@@ -220,14 +220,15 @@ public class NotesController : ControllerBase
                 Body = request.Body,
                 CreatedAt = DateTime.UtcNow
             };
-            _db.Note.Add(newNote);
+            await _db.Note.AddAsync(newNote);
         }
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
+
         return Ok(new
         {
             success = true,
-            message = "Zaktualizowano notsa"
+            message = "Zaktualizowano notatkę"
         });
     }
 }

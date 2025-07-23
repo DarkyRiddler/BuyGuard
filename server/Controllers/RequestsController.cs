@@ -22,7 +22,7 @@ public class RequestsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetRequests(
+    public async Task<IActionResult> GetRequests(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? status = null,
@@ -71,38 +71,21 @@ public class RequestsController : ControllerBase
         }
 
         if (!string.IsNullOrEmpty(status))
-        {
             requestsQuery = requestsQuery.Where(r => r.Status == status);
-        }
-
         if (minAmount.HasValue)
-        {
             requestsQuery = requestsQuery.Where(r => r.AmountPln >= minAmount.Value);
-        }
-
         if (maxAmount.HasValue)
-        {
             requestsQuery = requestsQuery.Where(r => r.AmountPln <= maxAmount.Value);
-        }
-
         if (dateFrom.HasValue)
-        {
             requestsQuery = requestsQuery.Where(r => r.CreatedAt >= dateFrom.Value);
-        }
-
         if (dateTo.HasValue)
-        {
             requestsQuery = requestsQuery.Where(r => r.CreatedAt <= dateTo.Value);
-        }
-
         if (!string.IsNullOrEmpty(searchName))
-        {
             requestsQuery = requestsQuery.Where(r =>
                 r.User != null &&
                 (r.User.FirstName.Contains(searchName) ||
-                 r.User.LastName.Contains(searchName) ||
-                 r.User.Email.Contains(searchName)));
-        }
+                r.User.LastName.Contains(searchName) ||
+                r.User.Email.Contains(searchName)));
 
         if (!string.IsNullOrEmpty(sortBy))
         {
@@ -143,9 +126,8 @@ public class RequestsController : ControllerBase
             requestsQuery = requestsQuery.OrderByDescending(r => r.CreatedAt);
         }
 
-        var totalRequests = requestsQuery.Count();
-        var totalPages = (int)Math.Ceiling((double)totalRequests / pageSize);
-        var pagedRequests = requestsQuery
+        var totalRequests = await requestsQuery.CountAsync();
+        var pagedRequests = await requestsQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(r => new
@@ -167,28 +149,32 @@ public class RequestsController : ControllerBase
                 createdAt = r.CreatedAt,
                 updatedAt = r.UpdatedAt,
             })
-            .ToList();
+            .ToListAsync();
+
+        var totalPages = (int)Math.Ceiling((double)totalRequests / pageSize);
         return Ok(new
         {
             request = pagedRequests,
-            totalPages = totalPages,
+            totalPages,
             currentPage = page,
-            totalRequests = totalRequests,
+            totalRequests,
             filters = new
             {
-                status = status,
-                minAmount = minAmount,
-                maxAmount = maxAmount,
-                dateFrom = dateFrom,
-                dateTo = dateTo,
-                searchName = searchName,
-                sortBy = sortBy,
-                sortOrder = sortOrder
+                status,
+                minAmount,
+                maxAmount,
+                dateFrom,
+                dateTo,
+                searchName,
+                sortBy,
+                sortOrder
             }
         });
     }
+
+    [Authorize]
     [HttpGet("{id}")]
-    public IActionResult GetSpecificRequest(int id)
+    public async Task<IActionResult> GetSpecificRequest(int id)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
@@ -196,14 +182,12 @@ public class RequestsController : ControllerBase
         if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
             return Unauthorized();
 
-        var request = _db.Request
-            .Where(r => r.Id == id)
+        var request = await _db.Request
             .Include(r => r.User)
             .Include(r => r.Manager)
             .Include(r => r.Attachments)
-            .Include(r => r.Notes)
-                .ThenInclude(n => n.Author)
-            .FirstOrDefault();
+            .Include(r => r.Notes).ThenInclude(n => n.Author)
+            .FirstOrDefaultAsync(r => r.Id == id);
 
         if (request == null)
             return NotFound();
@@ -250,11 +234,11 @@ public class RequestsController : ControllerBase
 
         if (currentUserRole != "employee")
             return Forbid("Tylko pracownicy moga skladac wnioski.");
-        
-        var matchingManager = _db.User
+
+        var matchingManager = await _db.User
             .Where(u => u.Role == "manager" && u.ManagerLimitPln >= request.amount_pln)
             .OrderBy(u => u.ManagerLimitPln)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
         int assignedManagerId;
 
@@ -264,7 +248,7 @@ public class RequestsController : ControllerBase
         }
         else
         {
-            var admin = _db.User.FirstOrDefault(u => u.Role == "admin");
+            var admin = await _db.User.FirstOrDefaultAsync(u => u.Role == "admin");
             if (admin == null)
                 return BadRequest("Brak dostępnego administratora.");
             assignedManagerId = admin.Id;
@@ -279,8 +263,7 @@ public class RequestsController : ControllerBase
             Reason = request.reason,
             UserId = clientId,
             ManagerId = assignedManagerId,
-            Manager = _db.User.FirstOrDefault(u => u.Id == assignedManagerId) ?? throw new InvalidOperationException("Manager not found"),
-            Status = "czeka", // czeka, potwierdzono, odrzucono, zakupione.
+            Status = "czeka",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null,
             Attachments = new List<Attachment>(),
@@ -288,19 +271,20 @@ public class RequestsController : ControllerBase
         };
 
         _db.Request.Add(newRequest);
-        _db.SaveChanges();
-		try
+        await _db.SaveChangesAsync();
+		    try
         {
             await _aiService.GenerateAIScoreForRequest(newRequest.Id, _db);
         }
         catch (Exception ex)
         {
         }
+
         return Ok(new { success = true, requestId = newRequest.Id });
     }
-
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateRequest(int id, [FromBody] UpdateRequest updateDto)
+    public async Task<IActionResult> UpdateRequestAsync(int id, [FromBody] UpdateRequest updateDto)
+
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
@@ -308,21 +292,23 @@ public class RequestsController : ControllerBase
             return Unauthorized();
         if (userRole != "employee")
             return Forbid("Tylko pracowniy mogą edytować zgłoszenia");
-        var request = _db.Request.FirstOrDefault(r => r.Id == id);
+
+        var request = await _db.Request.FirstOrDefaultAsync(r => r.Id == id);
         if (request == null)
             return NotFound("Nie odnaleziono zgłoszenia");
         if (request.UserId != clientId)
             return Forbid("Możesz edytować tylko swoje zgłoszenia");
         if (request.Status != "czeka")
             return BadRequest("Możesz edytować tylko oczekujące zgłoszenia:");
+
         if (updateDto.AmountPln.HasValue)
         {
             if (updateDto.AmountPln.Value <= 0)
                 return BadRequest("Kwota musi być większa od 0");
-
             if (updateDto.AmountPln.Value > 100000)
                 return BadRequest("hola hola kolego to chyba trochę za dużo");
         }
+
         if (!string.IsNullOrEmpty(updateDto.Title))
             request.Title = updateDto.Title;
         if (!string.IsNullOrEmpty(updateDto.Description))
@@ -331,20 +317,24 @@ public class RequestsController : ControllerBase
             request.AmountPln = updateDto.AmountPln.Value;
         if (!string.IsNullOrEmpty(updateDto.Reason))
             request.Reason = updateDto.Reason;
+
         request.UpdatedAt = DateTime.UtcNow;
-		request.AiScore = null;
-		request.AiScoreGeneratedAt = null;
-        _db.SaveChanges();
-		_ = Task.Run(async () =>
+
+
+        request.AiScore = null;
+        request.AiScoreGeneratedAt = null;
+        await _db.SaveChangesAsync();
+        _ = Task.Run(async () =>
         {
-            try
-            {
-                await _aiService.GenerateAIScoreForRequest(request.Id, _db);
-            }
-            catch (Exception ex)
-            {
-            }
-        });
+          try
+          {
+            await _aiService.GenerateAIScoreForRequest(request.Id, _db);
+          }
+          catch (Exception ex)
+          {
+          }
+        }
+        );
         var updatedRequest = new
         {
             id = request.Id,
@@ -355,9 +345,9 @@ public class RequestsController : ControllerBase
             status = request.Status,
             updatedAt = request.UpdatedAt
         };
+
         return Ok(updatedRequest);
     }
-
 
     // private string GetMimeTypeFromUrl(string url)
     // {
@@ -377,7 +367,7 @@ public class RequestsController : ControllerBase
     //     };
     // }
     [HttpPatch("{id}/status")]
-    public IActionResult UpdateRequestStatus(int id, [FromBody] UpdateRequestStatusDTO statusDto)
+    public async Task<IActionResult> UpdateRequestStatusAsync(int id, [FromBody] UpdateRequestStatusDTO statusDto)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
@@ -385,18 +375,22 @@ public class RequestsController : ControllerBase
             return Unauthorized();
         if (userRole != "manager" && userRole != "admin")
             return Forbid("Tylko menedżer lub admin może zmieniać status");
-        var request = _db.Request.FirstOrDefault(r => r.Id == id);
+
+        var request = await _db.Request.FirstOrDefaultAsync(r => r.Id == id);
         if (request == null)
             return NotFound("Zgłoszenie nie zostało znalezione");
         if (userRole == "manager" && request.ManagerId != clientId)
             return Forbid("Możesz zmieniać status tylko przypisanych do ciebie zgłoszeń");
         if (request.Status != "czeka")
             return BadRequest("Można zmienić status tylko oczekujących zgłoszeń");
+
         var validStatuses = new[] { "potwierdzono", "odrzucono", "zakupione" };
         if (!validStatuses.Contains(statusDto.Status))
             return BadRequest("Niepoprawny status");
+
         request.Status = statusDto.Status;
         request.UpdatedAt = DateTime.UtcNow;
+
         if (!string.IsNullOrEmpty(statusDto.Reason))
         {
             var note = new server.Models.Note
@@ -406,10 +400,11 @@ public class RequestsController : ControllerBase
                 Body = $"Status zmieniony na {statusDto.Status}. Powód: {statusDto.Reason}",
                 CreatedAt = DateTime.UtcNow
             };
-            _db.Note.Add(note);
+            await _db.Note.AddAsync(note);
         }
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
+
         return Ok(new
         {
             id = request.Id,
@@ -417,10 +412,9 @@ public class RequestsController : ControllerBase
             updatedAt = request.UpdatedAt,
             message = $"Status zgłoszenia został zmieniony na {statusDto.Status}"
         });
-
     }
 
-	[HttpPost("{id}/regenerate-ai-score")]
+	  [HttpPost("{id}/regenerate-ai-score")]
     public async Task<IActionResult> RegenerateAIScore(int id)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

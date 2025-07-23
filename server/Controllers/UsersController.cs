@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using server.DTOs.User;
 using server.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace server.Controllers;
@@ -19,12 +20,14 @@ public class UsersController : ControllerBase
         this._db = db;
     }
     [Authorize]
-	[HttpGet("{id}")]
-	public IActionResult GetUser(int id){
-		var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUser(int id)
+    {
+        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
         if (currentUserRole == null)
             return Unauthorized();
-        var user = _db.User.FirstOrDefault(u => u.Id == id);
+
+        var user = await _db.User.FirstOrDefaultAsync(u => u.Id == id);
         if (user == null || user.IsDeleted)
             return NotFound();
         if (currentUserRole == "admin" && user.Role != "manager")
@@ -43,36 +46,38 @@ public class UsersController : ControllerBase
     }
     [Authorize]
     [HttpGet]
-    public IActionResult GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         var given_role = User.FindFirstValue(ClaimTypes.Role);
         if (given_role == null) return Unauthorized();
+
         IQueryable<object> usersQuery;
+
         if (given_role == "admin")
         {
             usersQuery = _db.User
-                .Where(u => u.Role == "manager" && u.IsDeleted == false)
+                .Where(u => u.Role == "manager" && !u.IsDeleted)
                 .Select(u => new
                 {
-                    Id = u.Id,
-                    Role = u.Role,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
-                    ManagerLimitPln = u.ManagerLimitPln
+                    u.Id,
+                    u.Role,
+                    u.FirstName,
+                    u.LastName,
+                    u.Email,
+                    u.ManagerLimitPln
                 });
         }
         else if (given_role == "manager")
         {
             usersQuery = _db.User
-                .Where(u => u.Role == "employee" && u.IsDeleted == false)
+                .Where(u => u.Role == "employee" && !u.IsDeleted)
                 .Select(u => new
                 {
-                    Id = u.Id,
-                    Role = u.Role,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Email = u.Email,
+                    u.Id,
+                    u.Role,
+                    u.FirstName,
+                    u.LastName,
+                    u.Email,
                     ManagerLimitPln = (decimal?)null
                 });
         }
@@ -87,115 +92,96 @@ public class UsersController : ControllerBase
             });
         }
 
-        var totalUsers = usersQuery.Count();
+        var totalUsers = await usersQuery.CountAsync();
         var totalPages = (int)Math.Ceiling((double)totalUsers / pageSize);
-        var users = usersQuery
+        var users = await usersQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToList();
+            .ToListAsync();
+
         return Ok(new
         {
             user = users,
-            totalPages = totalPages,
+            totalPages,
             currentPage = page,
-            totalUsers = totalUsers
+            totalUsers
         });
     }
-    
     [Authorize]
     [HttpGet("me")]
-    public IActionResult GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
 
         if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
 
-        var user = _db.User
-            .Where(u => u.Id == userId && u.IsDeleted == false)
+        var user = await _db.User
+            .Where(u => u.Id == userId && !u.IsDeleted)
             .Select(u => new
             {
-                Id = u.Id,
-                Role = u.Role,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email,
-                ManagerLimitPln = u.ManagerLimitPln
+                u.Id,
+                u.Role,
+                u.FirstName,
+                u.LastName,
+                u.Email,
+                u.ManagerLimitPln
             })
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
         if (user == null) return NotFound();
 
         return Ok(new { user });
     }
-    
+
     [Authorize]
     [HttpDelete("{id}")]
-    public IActionResult DeleteUser(int id)
+    public async Task<IActionResult> DeleteUser(int id)
     {
         var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+        if (currentUserRole == null) return NotFound();
 
-        if (currentUserRole == null)
-            return NotFound();
+        var user = await _db.User.FirstOrDefaultAsync(u => u.Id == id);
+        if (user == null || user.IsDeleted) return NotFound();
 
-        var user = _db.User.FirstOrDefault(u => u.Id == id);
-        
-        if (user == null || user.IsDeleted == true)
-            return NotFound();
+        if (currentUserRole == "admin" && user.Role != "manager") return Forbid();
+        if (currentUserRole == "manager" && user.Role != "employee") return Forbid();
 
-        if (currentUserRole == "admin" && user.Role != "manager")
-            return Forbid();
-
-        if (currentUserRole == "manager" && user.Role != "employee")
-            return Forbid();
-
-        
         user.IsDeleted = true;
         _db.User.Update(user);
-        
-        _db.SaveChanges();
-        
+        await _db.SaveChangesAsync();
+
         return Ok(new List<object>());
     }
     [Authorize]
     [HttpPost]
-    public IActionResult CreateUser([FromBody] CreateUserRequest request)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
         var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-        
         if (currentUserRole == null)
             return Unauthorized();
-        
-        var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
+
+        var existingUser = await _db.User.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (existingUser != null)
-        {
             return Conflict("Mail zajęty!");
-        }
 
         string newUserRole;
         decimal? managerLimit = null;
-        
+
         if (currentUserRole == "admin")
         {
             newUserRole = "manager";
             if (request.ManagerLimitPln == null)
-            {
                 return BadRequest("Potrzebne informacje - limit menadżera!");
-            }
             managerLimit = request.ManagerLimitPln;
         }
         else if (currentUserRole == "manager")
         {
             newUserRole = "employee";
             if (request.ManagerLimitPln != null)
-            {
                 return BadRequest("Nie można ustawić limitu dla nowego użytkownika!");
-            }
         }
-        else
-        {
-            return Forbid("Tylko admin i menedżer mogą tworzyć użytkowników");
-        }
+        else return Forbid("Tylko admin i menedżer mogą tworzyć użytkowników");
 
         var newUser = new server.Models.User
         {
@@ -207,91 +193,66 @@ public class UsersController : ControllerBase
             ManagerLimitPln = managerLimit
         };
 
-        _db.User.Add(newUser);
-        _db.SaveChanges();
+        await _db.User.AddAsync(newUser);
+        await _db.SaveChangesAsync();
 
-        var response = new
+        return CreatedAtAction(nameof(GetUsers), new
         {
-            Id = newUser.Id,
-            FirstName = newUser.FirstName,
-            LastName = newUser.LastName,
-            Email = newUser.Email,
-            Role = newUser.Role,
-            ManagerLimitPln = newUser.ManagerLimitPln
-        };
-
-        return CreatedAtAction(nameof(GetUsers), response);
+            newUser.Id,
+            newUser.FirstName,
+            newUser.LastName,
+            newUser.Email,
+            newUser.Role,
+            newUser.ManagerLimitPln
+        });
     }
-    
+
     [Authorize]
     [HttpPatch("{id}")]
-    public IActionResult UpdateUser(int id, [FromBody] UpdateUserRequest request)
+    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
     {
         var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-        
         if (currentUserRole == null)
             return Unauthorized();
 
-        var userToUpdate = _db.User.FirstOrDefault(u => u.Id == id);
-        
-        if (userToUpdate == null || userToUpdate.IsDeleted == true)
+        var userToUpdate = await _db.User.FirstOrDefaultAsync(u => u.Id == id);
+        if (userToUpdate == null || userToUpdate.IsDeleted)
             return NotFound("Użytknownik not found!");
-        
+
         if (currentUserRole == "admin" && userToUpdate.Role != "manager")
-        {
             return Forbid("Admin może edytować tylko menedżerów");
-        }
-        else if (currentUserRole == "manager" && userToUpdate.Role != "employee")
-        {
+        if (currentUserRole == "manager" && userToUpdate.Role != "employee")
             return Forbid("Menedżer może edytować tylko pracowników");
-        }
-        else if (currentUserRole != "admin" && currentUserRole != "manager")
-        {
+        if (currentUserRole != "admin" && currentUserRole != "manager")
             return Forbid("Tylko admin i menedżer mogą edytować użytkowników");
-        }
 
         if (!string.IsNullOrEmpty(request.Email) && request.Email != userToUpdate.Email)
         {
-            var existingUser = _db.User.FirstOrDefault(u => u.Email == request.Email);
+            var existingUser = await _db.User.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (existingUser != null)
-            {
                 return Conflict("Email jest już zajęty");
-            }
-
             userToUpdate.Email = request.Email;
         }
+
         if (!string.IsNullOrEmpty(request.FirstName))
-        {
             userToUpdate.FirstName = request.FirstName;
-        }
-
         if (!string.IsNullOrEmpty(request.LastName))
-        {
             userToUpdate.LastName = request.LastName;
-        }
-
         if (!string.IsNullOrEmpty(request.Password))
-        {
             userToUpdate.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        }
-        
         if (currentUserRole == "admin" && request.ManagerLimitPln.HasValue)
-        {
             userToUpdate.ManagerLimitPln = request.ManagerLimitPln;
-        }
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
-        var response = new
+        return Ok(new
         {
-            Id = userToUpdate.Id,
-            FirstName = userToUpdate.FirstName,
-            LastName = userToUpdate.LastName,
-            Email = userToUpdate.Email,
-            Role = userToUpdate.Role,
-            ManagerLimitPln = userToUpdate.ManagerLimitPln
-        };
-
-        return Ok(response);
+            userToUpdate.Id,
+            userToUpdate.FirstName,
+            userToUpdate.LastName,
+            userToUpdate.Email,
+            userToUpdate.Role,
+            userToUpdate.ManagerLimitPln
+        });
     }
 }
