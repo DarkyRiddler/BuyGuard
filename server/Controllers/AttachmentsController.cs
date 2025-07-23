@@ -15,38 +15,46 @@ public class AttachmentsController : ControllerBase
 
     public AttachmentsController(ApplicationDbContext db)
     {
-        this._db = db;
+        _db = db;
     }
+
     [HttpPost("requests/{requestId}/attachment")]
-    public IActionResult UploadAttachment(int requestId, IFormFile file) {
+    public async Task<IActionResult> UploadAttachment(int requestId, IFormFile file)
+    {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
             return Unauthorized();
 
-        var request = _db.Request
+        var request = await _db.Request
             .Include(r => r.Attachments)
-            .FirstOrDefault(r => r.Id == requestId);
+            .FirstOrDefaultAsync(r => r.Id == requestId);
         if (request == null)
             return NotFound("Zgłoszenie nie istnieje");
 
         if (request.UserId != clientId)
             return Forbid("Nie masz uprawnień do dodawania załączników do tego zgłoszenia.");
-        
+
         if (currentUserRole != "employee")
             return Forbid("Tylko pracownicy mogą dodawać załączniki do zgłoszeń.");
 
         if (file == null || file.Length == 0)
             return BadRequest("Plik jest pusty");
         var allowedTypes = new[] { "image/jpeg", "image/png", "application/pdf" };
-        
+
         if (file.Length > 5 * 1024 * 1024)
             return BadRequest("Plik przekracza limit 5 MB");
-        
+
         var uploadsFolder = Path.Combine("uploads", "attachments");
         Directory.CreateDirectory(uploadsFolder);
         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
         var filePath = Path.Combine(uploadsFolder, fileName);
+
+        // Asynchroniczne zapisywanie pliku
+        await using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
 
         var attachment = new Attachment
         {
@@ -55,26 +63,25 @@ public class AttachmentsController : ControllerBase
             RequestId = requestId
         };
 
-        _db.Attachment.Add(attachment);
-        _db.SaveChanges();
-
+        await _db.Attachment.AddAsync(attachment);
+        await _db.SaveChangesAsync();
 
         return Ok(new { message = "Załącznik dodany", url = attachment.FileUrl });
     }
 
     [HttpGet("requests/{requestId}/attachment")]
-    public IActionResult GetRequestAttachments(int requestId)
+    public async Task<IActionResult> GetRequestAttachments(int requestId)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
             return Unauthorized();
 
-        var request = _db.Request
+        var request = await _db.Request
             .Include(r => r.Attachments)
             .Include(r => r.User)
             .Include(r => r.Manager)
-            .FirstOrDefault(r => r.Id == requestId);
+            .FirstOrDefaultAsync(r => r.Id == requestId);
 
         if (request == null)
             return NotFound();
@@ -82,7 +89,8 @@ public class AttachmentsController : ControllerBase
         if (userRole != "admin" && request.UserId != clientId && request.ManagerId != clientId)
             return Forbid();
 
-        var attachments = request.Attachments?.Select(a => new {
+        var attachments = request.Attachments?.Select(a => new
+        {
             a.Id,
             a.FileUrl,
             a.MimeType
@@ -90,6 +98,4 @@ public class AttachmentsController : ControllerBase
 
         return Ok(attachments);
     }
-
-
-}   
+}

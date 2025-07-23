@@ -10,6 +10,7 @@ using server.DTOs.Auth;
 using System.Collections.Concurrent;
 using server.DTOs.LoginRequest;
 using server.Data;
+using Microsoft.EntityFrameworkCore;
 
 
 [ApiController]
@@ -26,27 +27,34 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = _db.User
-                .Where(u => u.Email == request.Email)
-                .Select(u => new User
-                {
-                    Id = u.Id,
-                    Email = u.Email,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Role = u.Role,
-                    PasswordHash = u.PasswordHash,
-                }).FirstOrDefault();
-                
+        var user = await _db.User
+            .Where(u => u.Email == request.Email)
+            .Select(u => new User
+            {
+                Id = u.Id,
+                Email = u.Email,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Role = u.Role,
+                PasswordHash = u.PasswordHash,
+                IsDeleted = u.IsDeleted
+            })
+            .FirstOrDefaultAsync();
+
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
             return Unauthorized(new { message = "Nieprawidłowy email lub hasło" });
         }
 
+        if (user.IsDeleted)
+        {
+            return Unauthorized(new { message = "Konto zostało usunięte" });
+        }
+
         var token = GenerateJwtToken(user);
-        
+
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
@@ -80,10 +88,9 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
     [HttpPatch("change-password")]
     [Authorize]
-    public IActionResult ChangePassword([FromBody] ChangePasswordRequest request)
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
         try
         {
@@ -99,10 +106,15 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { success = false, error = "Nie ma usera!" });
             }
 
-            var user = _db.User.FirstOrDefault(u => u.Id == userId);
+            var user = await _db.User.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {
                 return Unauthorized(new { success = false, error = "Nie ma usera!" });
+            }
+
+            if (user.IsDeleted)
+            {
+                return Unauthorized(new { message = "Konto zostało usunięte" });
             }
 
             if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
@@ -127,12 +139,13 @@ public class AuthController : ControllerBase
             }
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
+
             return Ok(new { success = true, message = "Zmieniono hasło!" });
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            return StatusCode(500, new { success = false, error = "Interal server error!!" });
+            return StatusCode(500, new { success = false, error = "Internal server error!!" });
         }
     }
     private (bool IsValid, string ErrorMessage) ValidatePasswordStrength(string password)
