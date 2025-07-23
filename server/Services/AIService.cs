@@ -1,8 +1,8 @@
-﻿using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using server.Data;
+﻿using System.Text.Json;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using server.Data;
+using System.Text.Json.Serialization;
 
 namespace server.Services
 {
@@ -16,7 +16,7 @@ namespace server.Services
     public class AIService : IAIService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiKey = "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";
+        private const string ApiKey = "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";
 
         public AIService(HttpClient httpClient)
         {
@@ -37,10 +37,81 @@ namespace server.Services
             }
         }
 
+        private async Task<double> CallLLMService(string prompt)
+        {
+            try
+            {
+                var requestBody = new
+                {
+                    model = "openai/gpt-3.5-turbo",
+                    messages = new[]
+                    {
+                        new { role = "user", content = prompt }
+                    }
+                };
+
+                var json = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { WriteIndented = true });
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+                request.Content = content;
+        
+                request.Headers.Add("Authorization", $"Bearer {ApiKey}");
+                request.Headers.Add("HTTP-Referer", "http://localhost:5000");
+                request.Headers.Add("X-Title", "BuyGuard");
+                var response = await _httpClient.SendAsync(request);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    return 5.0;
+                }
+                
+                
+                try
+                {
+                    var aiResponse = JsonSerializer.Deserialize<OpenAIResponse>(responseContent);
+                    var resultText = aiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "5.0";
+                    var parsedScore = ParseScoreFromResponse(resultText);
+                    return parsedScore;
+                }
+                catch (JsonException jsonEx)
+                {
+                    return 5.0;
+                }
+            }
+            catch (HttpRequestException httpEx)
+            {
+                return 5.0;
+            }
+            catch (Exception ex)
+            {
+                return 5.0;
+            }
+        }
+
+        private double ParseScoreFromResponse(string response)
+        {
+            try
+            {
+                var cleaned = response.Trim();
+
+                if (double.TryParse(cleaned, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var score))
+                {
+                    return score;
+                }
+                return 5.0;
+            }
+            catch (Exception ex)
+            {
+                return 5.0;
+            }
+        }
+        
         public async Task GenerateAIScoreForRequest(int requestId, ApplicationDbContext context)
         {
             try
             {
+                
                 var request = await context.Request.FindAsync(requestId);
                 if (request == null)
                 {
@@ -68,6 +139,7 @@ namespace server.Services
 
                 context.Update(request);
                 await context.SaveChangesAsync();
+                
             }
             catch (Exception ex)
             {
@@ -81,6 +153,7 @@ namespace server.Services
                 var requestsWithoutAI = await context.Request
                     .Where(r => r.AiScore == null)
                     .ToListAsync();
+                
 
                 if (requestsWithoutAI.Count == 0)
                 {
@@ -96,6 +169,7 @@ namespace server.Services
                 {
                     try
                     {
+                        
                         var aiScore = await EvaluateProductUsefulness(
                             request.Title,
                             request.Description,
@@ -107,6 +181,7 @@ namespace server.Services
                         request.AiScore = aiScore;
                         request.AiScoreGeneratedAt = DateTime.UtcNow;
                         successCount++;
+                        
                         await Task.Delay(500);
                     }
                     catch (Exception ex)
@@ -131,7 +206,7 @@ namespace server.Services
 
         private string BuildPrompt(string title, string description, string reason, decimal amount, string companyContext)
         {
-            return $@"
+            var prompt = $@"
             You are an AI assistant helping evaluate the usefulness of product purchase requests for a company.
 
             Company Context: {companyContext}
@@ -151,56 +226,9 @@ namespace server.Services
 
             Respond with ONLY a number between 0.0 and 10.0 (e.g., 7.5).
             ";
-        }
-
-        private async Task<double> CallLLMService(string prompt)
-        {
-            var requestBody = new
-            {
-                model = "deepseek/deepseek-r1-0528:free",
-                messages = new[]
-                {
-                    new { role = "user", content = prompt }
-                }
-            };
-
-            var json = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
-            _httpClient.DefaultRequestHeaders.Add("HTTP-Referer", "https://yourdomain.com");
-            _httpClient.DefaultRequestHeaders.Add("X-Title", "YourAppName");
-
-            var response = await _httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
             
-            if (!response.IsSuccessStatusCode)
-            {
-                return 5.0;
-            }
-            
-            var aiResponse = JsonSerializer.Deserialize<OpenAIResponse>(responseContent);
-            var resultText = aiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "5.0";
-
-            return ParseScoreFromResponse(resultText);
-        }
-
-        private double ParseScoreFromResponse(string response)
-        {
-            try
-            {
-                var match = System.Text.RegularExpressions.Regex.Match(response, @"\d+\.?\d*");
-                if (match.Success && double.TryParse(match.Value, out var score))
-                {
-                    return score;
-                }
-                return 5.0;
-            }
-            catch
-            {
-                return 5.0;
-            }
+            Console.WriteLine($"[DEBUG] Generated prompt: {prompt}");
+            return prompt;
         }
 
         private class OpenAIResponse
