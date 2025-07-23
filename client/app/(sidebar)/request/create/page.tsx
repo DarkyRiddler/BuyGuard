@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useRef } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -36,11 +37,13 @@ const FormSchema = z.object({
     message: 'Uzasadnienie jest wymagane',
   }),
   link: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
+  image: z.any().optional(),
   });
 
 
 
 export default function InputForm() {
+  const imageRef = useRef<File | null>(null);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -54,19 +57,32 @@ export default function InputForm() {
 
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    try {
-      await axios.post('api/Requests', data);
-      toast.success('Zgłoszenie zostało pomyślnie utworzone');
-    } catch (error) {
-      if (isAxiosError(error)) {
-        if (isAxiosError(error)) {
-          toast.error(error.response?.data ?? 'Wystąpił nieznany błąd');
-        } else {
-          toast.error('Wystąpił błąd połączenia');
-        }
-      }
+  try {
+    const response = await axios.post('api/Requests', data);
+    const requestId = response.data.requestId; // ← wymaga by backend to zwracał
+
+    // 🔽 Nowy kod: jeśli mamy plik, wyślij go
+    if (imageRef.current) {
+      const formData = new FormData();
+      formData.append('file', imageRef.current);
+
+      await axios.post(`/api/Attachments/requests/${requestId}/attachment`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+
+    toast.success('Zgłoszenie zostało pomyślnie utworzone');
+  } catch (error) {
+    if (isAxiosError(error)) {
+      toast.error(error.response?.data ?? 'Wystąpił nieznany błąd');
+    } else {
+      toast.error('Wystąpił błąd połączenia');
     }
   }
+}
+
 
 
   return (

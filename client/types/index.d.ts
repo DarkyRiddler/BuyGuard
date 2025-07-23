@@ -14,6 +14,8 @@ export interface Request
   description: string;
   reason: string;
   link: string;
+  aiScore?: number | null;
+  aiScoreGeneratedAt?: string | null;
 }
 
 export type Role = 'admin' | 'manager' | 'employee';

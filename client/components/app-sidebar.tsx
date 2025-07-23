@@ -7,7 +7,8 @@ import {
   SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { List, User, UserRoundPlus } from 'lucide-react';
+import { icons } from 'lucide-react';
+import { List, User, Users, UserRoundPlus } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import Link from 'next/link';
 
@@ -20,7 +21,7 @@ const links = [
   {
     title: 'Użytkownicy',
     url: '/user/list',
-    icon: List
+    icon: Users
   },
   {
     title: 'Lista zgłoszeń',
@@ -32,17 +33,17 @@ const links = [
     url: '/request/create',
     icon: List
   },
+
 ];
 
 export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="dark:bg-gray-950">
-        <h1 className="text-lg font-semibold text-center">BuyGuard 🛒</h1>
+        <a href = "/"><img src = "/logo_transparent.png" alt = "logo"/></a>
       </SidebarHeader>
       <SidebarContent className="dark:bg-gray-950">
         <SidebarGroup>
-          <SidebarGroupLabel>Linki tu mozna dać</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {links.map((link) => (
@@ -65,7 +66,7 @@ export function AppSidebar() {
             <SidebarMenuButton asChild>
               <Link href={'/account'}>
                 <User/>
-                <span>Konto</span>
+                <span className = "text-lg">Konto</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

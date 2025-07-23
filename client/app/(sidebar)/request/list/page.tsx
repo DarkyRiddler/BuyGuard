@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { getUserFromCookie } from '@/lib/auth';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import CsvButton from '@/components/buttons/csv';
 
 const badgeClassName: Record<RequestStatus, string> = {
   czeka: 'bg-yellow-100 text-yellow-800',
@@ -120,6 +121,7 @@ export default async function RequestListPage({ searchParams }: Props) {
           </TableBody>
         </Table>
         <RequestPagination currentPage={data.currentPage} totalPages={data.totalPages}/>
+        <CsvButton/>
       </div>
     );
 
