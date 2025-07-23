@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { getUserFromCookie } from '@/lib/auth';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import FiltrationCard from '@/components/request/filtration-card';
 import CsvButton from '@/components/buttons/csv';
 
 const badgeClassName: Record<RequestStatus, string> = {
@@ -36,6 +37,7 @@ export default async function RequestListPage({ searchParams }: Props) {
   const {
     page: pageString,
     pageSize: pageSizeString,
+    ...filterParams
   } = await searchParams;
 
   const page = Number(pageString) || 1;
@@ -54,6 +56,7 @@ export default async function RequestListPage({ searchParams }: Props) {
       params: {
         page,
         pageSize,
+        ...filterParams
       },
     });
 
@@ -61,7 +64,9 @@ export default async function RequestListPage({ searchParams }: Props) {
 
     return (
       <div className={'flex flex-col gap-4 w-full'}>
-        <div className={'flex justify-end'}>
+        <FiltrationCard/>
+        <div className={'flex gap-4 justify-end'}>
+          <CsvButton className="h-full"/>
           <div className={'flex flex-col gap-2'}>
             <Label className={'text-sm'}>Liczba zgłoszeń na stronę:</Label>
             <PageSizeSelect defaultValue={pageSize}/>
@@ -121,7 +126,6 @@ export default async function RequestListPage({ searchParams }: Props) {
           </TableBody>
         </Table>
         <RequestPagination currentPage={data.currentPage} totalPages={data.totalPages}/>
-        <CsvButton/>
       </div>
     );
 
