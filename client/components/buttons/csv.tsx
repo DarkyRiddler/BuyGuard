@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isAxiosError } from 'axios';
 
-export default function CsvButton() {
+export default function CsvButton({ className }: { className?: string }) {
   async function csv() {
     try {
       const res = await axios.get('api/export/export', {
@@ -30,5 +30,5 @@ export default function CsvButton() {
     }
   }
 
-  return <Button onClick={csv} className="w-full">📥 Pobierz raport ZIP</Button>;
+  return <Button onClick={csv} className={className}>📥 Pobierz raport ZIP</Button>;
 }
