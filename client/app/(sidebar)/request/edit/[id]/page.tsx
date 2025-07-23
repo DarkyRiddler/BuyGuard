@@ -35,14 +35,17 @@ const FormSchema = z.object({
   reason: z.string().min(1,{
     message: 'Uzasadnienie jest wymagane',
   }),
-  link: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
+  url: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
+  image: z.any().optional(),
   });
 
 
 
 export default function InputForm() {
-  const params = useParams();
-  const id = params.id as string;
+    const params = useParams();
+    const id = params.id as string;
+    console.log(id);
+    const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -50,37 +53,43 @@ export default function InputForm() {
       amount_pln: 0,
       description: '',
       reason: '',
-      link: '',
+      url: '',
     },
   });
 
-
-   useEffect(() => {
-    async function fetchRequest(id: string) {
-      try {
-        const res = await axios.get(`/api/Requests/${id}`);
-        console.log(res);
-        form.reset({
+     useEffect(() => {
+       async function fetchRequest(id: string){
+        try{
+            const res = await axios.get(`/api/Requests/${id}`);
+            console.log(res);
+            form.reset({
                 title: res.data.title || '',
                 amount_pln: res.data.amountPln || 0,
                 description: res.data.description || '',
                 reason: res.data.reason || '',
-                link: res.data.link || '',
-        });
-      } catch (error) {
-        console.error('Błąd pobierania zgłoszenia:', error);
-        toast.error('Nie udało się załadować zgłoszenia');
-      }
-    }
+                url: res.data.Url || '',
+            });
 
-    fetchRequest(id);
-  }, [id, form]);
+            const attachmentsRes = await axios.get(`/api/Attachments/requests/${id}/attachment`);
+            const firstAttachment = attachmentsRes.data?.[0];
+
+            if (firstAttachment?.fileUrl && firstAttachment.mimeType.startsWith('image/')) {
+                setExistingImageUrl(firstAttachment.fileUrl);
+            }
+       }
+       catch(error)  {
+         console.error('Error fetching request:', error);
+         toast.error('Nie udało się pobrać danych zgłoszenia');
+       }
+    }
+       fetchRequest(id);
+     }, [id, form]);
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       const res = await axios.put(`api/Requests/${id}`, data);
       console.log('Response from server:', res);
-      toast.success('Twoje zgłoszenie zostało pomyślnie zaktualizowane.')
+      
     } catch (error) {
       console.error(error);
     }
@@ -140,7 +149,6 @@ export default function InputForm() {
                 <FormLabel>Uzasadnienie:</FormLabel>
                 <FormControl>
                   < Textarea {...field} />
-
                 </FormControl>
                 <FormMessage/>
               </FormItem>
@@ -148,12 +156,12 @@ export default function InputForm() {
           />
           <FormField
             control={form.control}
-            name="link"
+            name="url"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Link:</FormLabel>
                 <FormControl>
-                 <Input type="text" {...field} />
+                  <Input type="text" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -184,13 +192,20 @@ export default function InputForm() {
                         />
                     </label>
 
-                    {field.value && (
-                        <img
+                    {field.value ? (
+                    <img
                         src={URL.createObjectURL(field.value)}
                         alt="Podgląd"
                         className="w-24 h-24 object-cover rounded-xl border"
-                        />
-                    )}
+                    />
+                    ) : existingImageUrl ? (
+                    <img
+                        src={existingImageUrl}
+                        alt="Istniejący załącznik"
+                        className="w-24 h-24 object-cover rounded-xl border"
+                    />
+                    ) : null}
+
                     </div>
                 </FormControl>
                 <FormMessage />
