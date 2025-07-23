@@ -16,7 +16,7 @@ namespace server.Services
     public class AIService : IAIService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiKey = "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";
+        private const string ApiKey = "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";
 
         public AIService(HttpClient httpClient)
         {
@@ -43,7 +43,7 @@ namespace server.Services
             {
                 var requestBody = new
                 {
-                    model = "openai/gpt-3.5-turbo",
+                    model = "google/gemma-3-27b-it:free",
                     messages = new[]
                     {
                         new { role = "user", content = prompt }
@@ -227,7 +227,6 @@ namespace server.Services
             Respond with ONLY a number between 0.0 and 10.0 (e.g., 7.5).
             ";
             
-            Console.WriteLine($"[DEBUG] Generated prompt: {prompt}");
             return prompt;
         }
 
