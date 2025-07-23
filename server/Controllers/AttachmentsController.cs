@@ -63,10 +63,33 @@ public class AttachmentsController : ControllerBase
     }
 
     [HttpGet("requests/{requestId}/attachment")]
+    public IActionResult GetRequestAttachments(int requestId)
+    {
+        var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
+            return Unauthorized();
 
+        var request = _db.Request
+            .Include(r => r.Attachments)
+            .Include(r => r.User)
+            .Include(r => r.Manager)
+            .FirstOrDefault(r => r.Id == requestId);
 
-    [HttpGet("requests/{requestId}")]
+        if (request == null)
+            return NotFound();
 
+        if (userRole != "admin" && request.UserId != clientId && request.ManagerId != clientId)
+            return Forbid();
+
+        var attachments = request.Attachments?.Select(a => new {
+            a.Id,
+            a.FileUrl,
+            a.MimeType
+        }).ToList();
+
+        return Ok(attachments);
+    }
 
 
 }   
