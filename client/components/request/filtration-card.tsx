@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { DatePicker } from '@/components/buttons/date-picker';
 
 const formatDateForBackend = (dateString: string, isEndDate: boolean = false): string => {
   if (!dateString) return '';
@@ -148,22 +149,17 @@ export default function FiltrationCard() {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="dateFrom">Data od</Label>
-            <Input
-              id="dateFrom"
-              type="date"
+            <DatePicker
               value={filters.dateFrom}
-              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              onChange={(value) => handleFilterChange('dateFrom', value)}
             />
-
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="dateTo">Data do</Label>
-            <Input
-              id="dateTo"
-              type="date"
+            <DatePicker
               value={filters.dateTo}
-              onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+              onChange={(value) => handleFilterChange('dateTo', value)}
             />
           </div>
 

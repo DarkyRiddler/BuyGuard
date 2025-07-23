@@ -60,8 +60,6 @@ export default async function RequestListPage({ searchParams }: Props) {
       },
     });
 
-    console.log(data);
-
     return (
       <div className={'flex flex-col gap-4 w-full'}>
         <FiltrationCard/>
