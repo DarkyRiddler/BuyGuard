@@ -14,6 +14,7 @@ public class Request
 
     public required string Title { get; set; }
     public required string Description { get; set; }
+    public string Url { get; set; } 
     public decimal AmountPln { get; set; }
     public required string Reason { get; set; }
     public required string Status { get; set; } = "czeka"; // czeka, potwierdzono, odrzucono, zakupione.
