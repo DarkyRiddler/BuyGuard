@@ -4,6 +4,7 @@ using System.Security.Claims;
 using server.DTOs.Request;
 using server.Data;
 using server.Models;
+using server.Services;
 using Microsoft.EntityFrameworkCore;
 
 [Authorize]
@@ -12,10 +13,12 @@ using Microsoft.EntityFrameworkCore;
 public class RequestsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
+	private readonly IAIService _aiService;
 
-    public RequestsController(ApplicationDbContext db)
+    public RequestsController(ApplicationDbContext db, IAIService aiService)
     {
         this._db = db;
+		this._aiService = aiService;
     }
 
     [HttpGet]
@@ -125,6 +128,11 @@ public class RequestsController : ControllerBase
                         ? requestsQuery.OrderByDescending(r => r.User.FirstName).ThenByDescending(r => r.User.LastName)
                         : requestsQuery.OrderBy(r => r.User.FirstName).ThenBy(r => r.User.LastName);
                     break;
+				case "aiscore":
+                    requestsQuery = sortOrder?.ToLower() == "desc"
+                        ? requestsQuery.OrderByDescending(r => r.AiScore)
+                        : requestsQuery.OrderBy(r => r.AiScore);
+                    break;
                 default:
                     requestsQuery = requestsQuery.OrderByDescending(r => r.CreatedAt);
                     break;
@@ -148,11 +156,14 @@ public class RequestsController : ControllerBase
                 userName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null,
                 managerId = r.ManagerId,
                 managerName = r.Manager != null ? $"{r.Manager.FirstName} {r.Manager.LastName}" : null,
-                description = r.Description,
+                title = r.Title,
+				description = r.Description,
                 url = r.Url,
                 amountPln = r.AmountPln,
                 reason = r.Reason,
                 status = r.Status,
+				aiScore = r.AiScore,
+				aiScoreGeneratedAt = r.AiScoreGeneratedAt,
                 createdAt = r.CreatedAt,
                 updatedAt = r.UpdatedAt,
             })
@@ -210,6 +221,7 @@ public class RequestsController : ControllerBase
             reason = request.Reason,
             status = request.Status,
             aiScore = request.AiScore,
+			aiScoreGeneratedAt = request.AiScoreGeneratedAt,
             createdAt = request.CreatedAt,
             updatedAt = request.UpdatedAt,
             userId = request.UserId,
@@ -229,7 +241,7 @@ public class RequestsController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateRequest([FromBody] CreateRequest request)
+    public async Task<IActionResult> CreateRequest([FromBody] CreateRequest request)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
@@ -277,12 +289,18 @@ public class RequestsController : ControllerBase
 
         _db.Request.Add(newRequest);
         _db.SaveChanges();
-
+		try
+        {
+            await _aiService.GenerateAIScoreForRequest(newRequest.Id, _db);
+        }
+        catch (Exception ex)
+        {
+        }
         return Ok(new { success = true, requestId = newRequest.Id });
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateRequest(int id, [FromBody] UpdateRequest updateDto)
+    public async Task<IActionResult> UpdateRequest(int id, [FromBody] UpdateRequest updateDto)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var userRole = User.FindFirstValue(ClaimTypes.Role);
@@ -314,7 +332,19 @@ public class RequestsController : ControllerBase
         if (!string.IsNullOrEmpty(updateDto.Reason))
             request.Reason = updateDto.Reason;
         request.UpdatedAt = DateTime.UtcNow;
+		request.AiScore = null;
+		request.AiScoreGeneratedAt = null;
         _db.SaveChanges();
+		_ = Task.Run(async () =>
+        {
+            try
+            {
+                await _aiService.GenerateAIScoreForRequest(request.Id, _db);
+            }
+            catch (Exception ex)
+            {
+            }
+        });
         var updatedRequest = new
         {
             id = request.Id,
@@ -388,5 +418,42 @@ public class RequestsController : ControllerBase
             message = $"Status zgłoszenia został zmieniony na {statusDto.Status}"
         });
 
+    }
+
+	[HttpPost("{id}/regenerate-ai-score")]
+    public async Task<IActionResult> RegenerateAIScore(int id)
+    {
+        var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
+            return Unauthorized();
+        if (userRole != "admin" && userRole != "manager")
+            return Forbid("Tylko admin lub manager może regenerować AI score");
+        var request = _db.Request.FirstOrDefault(r => r.Id == id);
+        if (request == null)
+            return NotFound("Zgłoszenie nie zostało znalezione");
+        if (userRole == "manager" && request.ManagerId != clientId)
+            return Forbid("Możesz regenerować AI score tylko dla przypisanych do ciebie zgłoszeń");
+        try
+        {
+            request.AiScore = null;
+            request.AiScoreGeneratedAt = null;
+            _db.SaveChanges();
+            await _aiService.GenerateAIScoreForRequest(id, _db);
+            var updatedRequest = _db.Request.Find(id);
+            
+            return Ok(new
+            {
+                success = true,
+                requestId = id,
+                aiScore = updatedRequest?.AiScore,
+                aiScoreGeneratedAt = updatedRequest?.AiScoreGeneratedAt,
+                message = "AI score został pomyślnie wygenerowany ponownie"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Błąd podczas generowania AI score: {ex.Message}");
+        }
     }
 }
