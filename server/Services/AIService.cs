@@ -15,8 +15,8 @@ namespace server.Services
 
     public class AIService : IAIService
     {
-        private readonly HttpClient _httpClient;
-        private const string ApiKey = "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";
+        private readonly HttpClient _httpClient;   
+		private const string ApiKey = "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";
 
         public AIService(HttpClient httpClient)
         {
@@ -217,14 +217,17 @@ namespace server.Services
             - Reason: {reason}
             - Amount: {amount} PLN
 
-            Please evaluate this product request and provide a usefulness score from 0.0 to 10.0 based on:
-            1. Business alignment with company goals
-            2. Cost-benefit analysis
-            3. Necessity for operations
-            4. Potential productivity impact
-            5. Strategic value
+            Evaluate this product request and provide a usefulness score from (0.0 to 10.0) based on the following criteria:
+            1. **Business alignment** – Does it support company goals or mission?
+			2. **Cost-benefit analysis** – Are the expected benefits worth the cost? Are there better alternatives?
+			3. **Necessity** – Is it essential for the requester’s work or operations?
+			4. **Productivity impact** – Will it significantly enhance work efficiency or output?
+			5. **Strategic value** – Does it contribute to long-term goals, innovation, or competitive advantage?
 
-            Respond with ONLY a number between 0.0 and 10.0 (e.g., 7.5).
+            Respond with ONLY a number between 0.0 and 10.0 (e.g., 7.5), where:
+			- 0.0 = not useful at all
+			- 5.0 =  moderately useful
+			- 10.0 = extremely useful
             ";
             
             return prompt;
