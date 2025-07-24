@@ -16,11 +16,12 @@ namespace server.Services
     public class AIService : IAIService
     {
         private readonly HttpClient _httpClient;   
-		private const string ApiKey = "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";
+		private readonly string _apiKey;
 
-        public AIService(HttpClient httpClient)
+        public AIService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
+			_apiKey = configuration["OpenRouter:ApiKey"] ?? throw new InvalidOperationException("OpenRouter API key not configured");
         }
 
         public async Task<double> EvaluateProductUsefulness(string title, string description, string reason, decimal amount, string companyContext)
@@ -56,7 +57,7 @@ namespace server.Services
                 var request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
                 request.Content = content;
         
-                request.Headers.Add("Authorization", $"Bearer {ApiKey}");
+                request.Headers.Add("Authorization", $"Bearer {_apiKey}");
                 request.Headers.Add("HTTP-Referer", "http://localhost:5000");
                 request.Headers.Add("X-Title", "BuyGuard");
                 var response = await _httpClient.SendAsync(request);
