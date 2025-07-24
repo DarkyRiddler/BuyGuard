@@ -381,8 +381,8 @@ public class RequestsController : ControllerBase
             return NotFound("Zgłoszenie nie zostało znalezione");
         if (userRole == "manager" && request.ManagerId != clientId)
             return Forbid("Możesz zmieniać status tylko przypisanych do ciebie zgłoszeń");
-        if (request.Status != "czeka")
-            return BadRequest("Można zmienić status tylko oczekujących zgłoszeń");
+        if (request.Status == "odrzucono" || (request.Status == "zakupione" && statusDto.Status != "zakupione"))
+            return BadRequest("Nie można zmienić statusu już zakończonych zgloszeń");
 
         var validStatuses = new[] { "potwierdzono", "odrzucono", "zakupione" };
         if (!validStatuses.Contains(statusDto.Status))
