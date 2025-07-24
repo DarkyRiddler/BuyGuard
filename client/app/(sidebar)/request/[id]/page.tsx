@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
+import { Request } from '@/types';
 
 
 export default function InputForm() {
@@ -18,7 +19,7 @@ export default function InputForm() {
   const router = useRouter();
   const id = params.id as string;
 
-  const [request, setRequest] = useState<any | null>(null);
+  const [request, setRequest] = useState<Request | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

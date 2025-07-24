@@ -3,14 +3,14 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup, SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { icons } from 'lucide-react';
 import { List, User, Users, UserRoundPlus } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
+import AppLogo from '@/public/logo_transparent.png';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const links = [
   {
@@ -40,7 +40,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="dark:bg-gray-950">
-        <a href = "/"><img src = "/logo_transparent.png" alt = "logo"/></a>
+        <Link href="/"><Image src={AppLogo} priority={true} alt="logo"/></Link>
       </SidebarHeader>
       <SidebarContent className="dark:bg-gray-950">
         <SidebarGroup>
