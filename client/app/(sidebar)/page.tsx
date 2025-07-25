@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { PaginatedResponse } from '@/types';
 import { StatusChart } from '@/components/dashboard/status-chart';
+import { AmountChart } from '@/components/dashboard/amount-chart';
 
 type Props = {
   searchParams: {
@@ -13,22 +14,6 @@ type Props = {
     dateTo?: string;
   };
 };
-
-const Months: Record<number, string> = {
-  0: 'Styczeń',
-  1: 'Luty',
-  2: 'Marzec',
-  3: 'Kwiecień',
-  4: 'Maj',
-  5: 'Czerwiec',
-  6: 'Lipiec',
-  7: 'Sierpień',
-  8: 'Wrzesień',
-  9: 'Październik',
-  10: 'Listopad',
-  11: 'Grudzień',
-};
-
 
 export default async function Home({ searchParams }: Props) {
   const {
@@ -74,10 +59,9 @@ export default async function Home({ searchParams }: Props) {
       rejected: request.filter(r => r.status === 'odrzucono').length,
       pending: request.filter(r => r.status === 'czeka').length,
       purchased: request.filter(r => r.status === 'zakupione').length,
+      meanAmount: request.reduce((acc, curr) => acc + curr.amountPln, 0) / request.length,
       totalAmount: request.reduce((acc, curr) => acc + curr.amountPln, 0),
     };
-
-    console.log(stats);
 
     return (
       <div className="flex flex-col items-center justify-center gap-5">
@@ -88,19 +72,24 @@ export default async function Home({ searchParams }: Props) {
         </div>
         <h1 className="text-4xl">
           {(!dateFromString && !dateToString)
-            ? `Statystyki z ${Months[dateFrom.getMonth()]} ${dateFrom.getFullYear()}`
+            ? `Statystyki z ${new Date().toLocaleDateString("pl-PL", {
+              month: "long",
+              year: "numeric",
+            })}`
             : `Statystyki od ${dateFrom.toLocaleDateString('pl-PL')} do ${dateTo.toLocaleDateString('pl-PL')}`}
         </h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="p-5 rounded-2xl bg-white dark:bg-gray-800 shadow-md w-full max-w-md space-y-4">
             <p><strong>Łącznie zgłoszeń:</strong> {stats.total}</p>
             <p><strong>Potwierdzone:</strong> {stats.approved}</p>
             <p><strong>Odrzucone:</strong> {stats.rejected}</p>
             <p><strong>W trakcie:</strong> {stats.pending}</p>
             <p><strong>Zakupione:</strong> {stats.purchased}</p>
-            <p><strong>Łączna kwota (PLN):</strong> {stats.totalAmount.toFixed(2)}</p>
+            <p><strong>Średnia wartość zamówień:</strong> {stats.meanAmount.toFixed(2)} PLN</p>
+            <p><strong>Łączna kwota:</strong> {stats.totalAmount.toFixed(2)} PLN</p>
           </Card>
           <StatusChart stats={stats}/>
+          <AmountChart className="col-span-1 md:col-span-2" requests={request}/>
         </div>
       </div>
     );
