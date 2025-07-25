@@ -1,4 +1,4 @@
-﻿import Image from 'next/image';
+import Image from 'next/image';
 import AppLogo from '@/public/logo_transparent.png';
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {

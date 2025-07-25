@@ -86,7 +86,7 @@ export function StatusChart({ className, stats }: StatusChartProps) {
                   </text>
                 );
               }}
-              nameKey="browser"
+              nameKey="request"
             />
           </PieChart>
         </ChartContainer>

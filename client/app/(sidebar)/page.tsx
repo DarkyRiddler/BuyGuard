@@ -51,7 +51,7 @@ export default async function Home({ searchParams }: Props) {
       },
     });
 
-    console.log(request);
+    
 
     const stats = {
       total: request.length,

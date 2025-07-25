@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DatePicker } from '../buttons/date-picker';
