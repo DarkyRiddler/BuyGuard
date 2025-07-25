@@ -8,7 +8,7 @@ import { isAxiosError } from 'axios';
 export default function CsvButton({ className }: { className?: string }) {
   async function csv() {
     try {
-      const res = await axios.get('api/export/export', {
+      const res = await axios.get('api/perla/export', {
         responseType: 'blob', // bardzo ważne!
       });
 
