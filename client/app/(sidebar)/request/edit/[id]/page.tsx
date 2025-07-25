@@ -146,7 +146,7 @@ export default function InputForm() {
             name="reason"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Uzasadnienie:</FormLabel>
+                <FormLabel>Powód:</FormLabel>
                 <FormControl>
                   < Textarea {...field} />
                 </FormControl>

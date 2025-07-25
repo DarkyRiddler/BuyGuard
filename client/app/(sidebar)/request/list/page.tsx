@@ -71,7 +71,6 @@ export default async function RequestListPage({ searchParams }: Props) {
           </div>
         </div>
         <Table>
-          <TableCaption>A list of your recent invoices.</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[100px]">Kod</TableHead>

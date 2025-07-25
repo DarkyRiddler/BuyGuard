@@ -41,10 +41,10 @@ export default function InputForm() {
   if (!request) return <p>Brak danych.</p>;
 
   return (
-    <Card className="min-w-150">
+    <Card className="min-w-200">
       <CardHeader>
         <CardTitle className="mx-auto text-2xl">
-          <span className="font-bold text-slate-950 dark:text-sky-50">
+          <span className="text-4xl font-semibold text-slate-950 dark:text-sky-50">
             {request.title}
           </span>
         </CardTitle>
@@ -52,41 +52,47 @@ export default function InputForm() {
       <CardContent>
         <div className="space-y-2 w-full text-2xl mb-5">
           <div className="flex justify-between">
-            <span className="font-semibold text-slate-950 dark:text-sky-50">
-              Kwota (PLN):
+            <span className="dark:bg-gray-800 bg-yellow-200 font-semibold text-slate-950 dark:text-sky-50">
+              Cena (PLN):
             </span>
             <span>{request.amountPln}</span>
           </div>
             <div className="flex justify-between">
-            <span className="font-semibold text-slate-950 dark:text-sky-50">
+            <span className="dark:bg-gray-800 bg-yellow-200 font-semibold text-slate-950 dark:text-sky-50">
               Opis:
             </span>
             <span>{request.description}</span>
           </div>
             <div className="flex justify-between">
-            <span className="font-semibold text-slate-950 dark:text-sky-50">
+            <span className="dark:bg-gray-800 bg-yellow-200 font-semibold text-slate-950 dark:text-sky-50">
               Powód:
             </span>
             <span>{request.reason}</span>
           </div>
                     <div className="flex justify-between">
-            <span className="font-semibold text-slate-950 dark:text-sky-50">
+            <span className="dark:bg-gray-800 bg-yellow-200 font-semibold text-slate-950 dark:text-sky-50">
               Link:
             </span>
             <span><a target="_blank" href={"https://" + request.url} >{request.url}</a></span>
+          </div>
+          <div className="flex justify-between">
+            <span className="dark:bg-gray-800 bg-yellow-200 font-semibold text-slate-950 dark:text-sky-50">
+              Status:
+            </span>
+            <span>{request.status}</span>
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-center space-y-2">
         <button
           onClick={() => router.push('/request/list')}
-          className="bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+          className="text-2xl bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-800 hover:cursor-pointer"
         >
           Powrót do listy
         </button>
         <button
           onClick={() => router.push(`/request/edit/${id}`)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="text-2xl bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 hover:cursor-pointer"
         >
           Edytuj zgłoszenie
         </button>
