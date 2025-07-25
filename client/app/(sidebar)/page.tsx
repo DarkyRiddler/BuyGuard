@@ -5,6 +5,7 @@ import { DateFilterForm } from '@/components/dashboard/date-filter';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { PaginatedResponse } from '@/types';
+import { StatusChart } from '@/components/dashboard/status-chart';
 
 type Props = {
   searchParams: {
@@ -90,7 +91,7 @@ export default async function Home({ searchParams }: Props) {
             ? `Statystyki z ${Months[dateFrom.getMonth()]} ${dateFrom.getFullYear()}`
             : `Statystyki od ${dateFrom.toLocaleDateString('pl-PL')} do ${dateTo.toLocaleDateString('pl-PL')}`}
         </h1>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card className="p-5 rounded-2xl bg-white dark:bg-gray-800 shadow-md w-full max-w-md space-y-4">
             <p><strong>Łącznie zgłoszeń:</strong> {stats.total}</p>
             <p><strong>Potwierdzone:</strong> {stats.approved}</p>
@@ -99,6 +100,7 @@ export default async function Home({ searchParams }: Props) {
             <p><strong>Zakupione:</strong> {stats.purchased}</p>
             <p><strong>Łączna kwota (PLN):</strong> {stats.totalAmount.toFixed(2)}</p>
           </Card>
+          <StatusChart stats={stats}/>
         </div>
       </div>
     );
