@@ -1,9 +1,12 @@
-﻿export default function LoginLayout({ children }: { children: React.ReactNode }) {
+import Image from 'next/image';
+import AppLogo from '@/public/logo_transparent.png';
+
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen w-full">
       <div className = "relative w-1/3 absolute h-20">
           <h1 className = "absolute bottom-20 w-1/1 flex justify-center">
-            <a href = "/"><img src = "/logo_transparent.png" alt = "logo" className="h-45"/></a>
+            <Image src={AppLogo} height="300" alt="logo"/>
           </h1>
           <h2 className = 'absolute bottom-10 w-1/1 text-2xl text-slate-900 dark:text-sky-50 font bold text-center'>Zaloguj się</h2>
         </div>
