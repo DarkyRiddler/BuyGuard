@@ -36,7 +36,7 @@ const FormSchema = z.object({
   reason: z.string().min(1,{
     message: 'Uzasadnienie jest wymagane',
   }),
-  link: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
+  url: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
   image: z.any().optional(),
   });
 
@@ -51,7 +51,7 @@ export default function InputForm() {
       amount_pln: 0,
       description: '',
       reason: '',
-      link: '',
+      url: '',
     },
   });
 
@@ -61,7 +61,7 @@ export default function InputForm() {
     const response = await axios.post('api/Requests', data);
     const requestId = response.data.requestId; // ← wymaga by backend to zwracał
 
-    // 🔽 Nowy kod: jeśli mamy plik, wyślij go
+    //  Nowy kod: jeśli mamy plik, wyślij go
     if (imageRef.current) {
       const formData = new FormData();
       formData.append('file', imageRef.current);
@@ -145,7 +145,7 @@ export default function InputForm() {
           />
           <FormField
             control={form.control}
-            name="link"
+            name="url"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Link:</FormLabel>
