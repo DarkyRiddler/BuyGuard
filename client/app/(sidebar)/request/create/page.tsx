@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import axios from '@/lib/utils';
-import { Plus } from 'lucide-react';
-import {Textarea} from '@/components/ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { isAxiosError } from 'axios';
+import { AttachmentsDropzone } from '@/components/request/attachments-dropzone';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser } from '@/context/user-context';
@@ -31,18 +31,16 @@ const FormSchema = z.object({
   }),
   amount_pln: z.preprocess((val) => parseFloat(z.string().parse(val)),
     z.number().max(100000, { message: 'Kwota musi być mniejsza lub równa 100 000 zł' })
-    .min(1, { message: 'Kwota musi być większa od zera' })
+    .min(1, { message: 'Kwota musi być większa od zera' }),
   ),
-  description: z.string().min(1,{
+  description: z.string().min(1, {
     message: 'Opis jest wymagany',
   }),
-  reason: z.string().min(1,{
+  reason: z.string().min(1, {
     message: 'Uzasadnienie jest wymagane',
   }),
   url: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { message: 'Podaj poprawny adres URL' }),
-  image: z.any().optional(),
-  });
-
+});
 
 
 export default function InputForm() {
@@ -59,6 +57,9 @@ export default function InputForm() {
       url: '',
     },
   });
+
+  const attachmentsRef = useRef<File[]>([]);
+  const [attachmentKey, setAttachmentKey] = useState(0);
   if (user?.role === 'admin' || user?.role === 'manager') {
         return (
             <Card>
@@ -74,146 +75,124 @@ export default function InputForm() {
     }
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-  try {
-    const response = await axios.post('api/Requests', data);
-    const requestId = response.data.requestId; // ← wymaga by backend to zwracał
+    try {
+      const response = await axios.post('api/Requests', data);
+      const requestId = response.data.requestId;
 
-    //  Nowy kod: jeśli mamy plik, wyślij go
-    if (imageRef.current) {
-      const formData = new FormData();
-      formData.append('file', imageRef.current);
+      if (attachmentsRef.current.length > 0) {
+        for (const file of attachmentsRef.current) {
+          const formData = new FormData();
+          formData.append('file', file);
 
-      await axios.post(`/api/Attachments/requests/${requestId}/attachment`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    }
+          await axios.post(
+            `/api/Attachments/requests/${requestId}/attachment`,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            },
+          );
+        }
+      }
 
-    toast.success('Zgłoszenie zostało pomyślnie utworzone');
-  } catch (error) {
-    if (isAxiosError(error)) {
-      toast.error(error.response?.data ?? 'Wystąpił nieznany błąd');
-    } else {
-      toast.error('Wystąpił błąd połączenia');
+      toast.success('Zgłoszenie zostało pomyślnie utworzone');
+      form.reset();
+      attachmentsRef.current = [];
+      // Reset attachment component by changing key
+      setAttachmentKey(prev => prev + 1);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast.error(error.response?.data ?? 'Wystąpił nieznany błąd');
+      } else {
+        toast.error('Wystąpił błąd połączenia');
+      }
     }
   }
-}
-
 
 
   return (
-    
-      <Form {...form}>
-        <h1 className="text-2xl font-semibold mb-6">Dodaj zgłoszenie:</h1>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="w-1/3 space-y-6">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tytuł:</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="amount_pln"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cena:</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} />
-                </FormControl>
+    <Form {...form}>
+      <h1 className="text-2xl font-semibold mb-6">Dodaj zgłoszenie:</h1>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-1/3 space-y-6">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tytuł:</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="amount_pln"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cena:</FormLabel>
+              <FormControl>
+                <Input type="number" {...field} />
+              </FormControl>
 
-                <FormMessage/>
-              </FormItem>
-            )}
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Opis:</FormLabel>
+              <FormControl>
+                < Textarea {...field} />
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="reason"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Uzasadnienie:</FormLabel>
+              <FormControl>
+                < Textarea {...field} />
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Link:</FormLabel>
+              <FormControl>
+                <Input type="text" {...field} />
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+        <div>
+          <FormLabel>Załączniki:</FormLabel>
+          <AttachmentsDropzone
+            key={attachmentKey}
+            onFilesChange={(files) => {
+              attachmentsRef.current = files;
+            }}
           />
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Opis:</FormLabel>
-                <FormControl>
-                  < Textarea {...field} />
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="reason"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Uzasadnienie:</FormLabel>
-                <FormControl>
-                  < Textarea {...field} />
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Link:</FormLabel>
-                <FormControl>
-                  <Input type="text" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-            />
-          <FormField
-            control={form.control}
-            name="image"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Zdjęcie:</FormLabel>
-                <FormControl>
-                    <div className="flex items-center gap-4">
-                    <label
-                        htmlFor="upload"
-                        className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center hover:bg-gray-100 transition"
-                    >
-                        <Plus className="w-6 h-6 text-gray-500" />
-                        <input
-                        id="upload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) field.onChange(file);
-                        }}
-                        />
-                    </label>
+        </div>
+        <Button type="submit" className={'w-full'}>Dodaj zgłoszenie</Button>
+      </form>
+    </Form>
 
-                    {field.value && (
-                        <img
-                        src={URL.createObjectURL(field.value)}
-                        alt="Podgląd"
-                        className="w-24 h-24 object-cover rounded-xl border"
-                        />
-                    )}
-                    </div>
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-          <Button type="submit" className={'w-full'}>Dodaj zgłoszenie</Button>
-        </form>
-      </Form>
-    
   );
 }
