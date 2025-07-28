@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isAxiosError } from 'axios';
 
-export default function CsvButton({ className }: { className?: string }) {
+export default function CsvButton({ className, searchParams }: { className?: string; searchParams?: Record<string, string> }) {
+  const queryString = new URLSearchParams(searchParams).toString();
   async function csv() {
     try {
-      const res = await axios.get('api/perla/export', {
+      const res = await axios.get(`api/perla/export?${queryString}`, {
         responseType: 'blob', // bardzo ważne!
       });
 
