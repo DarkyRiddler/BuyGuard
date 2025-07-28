@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import FiltrationCard from '@/components/request/filtration-card';
 import CsvButton from '@/components/buttons/csv';
+import { PaginatedResponse, RequestStatus, Request } from '@/types';
 
 const badgeClassName: Record<RequestStatus, string> = {
   czeka: 'bg-yellow-100 text-yellow-800',
@@ -64,7 +65,7 @@ export default async function RequestListPage({ searchParams }: Props) {
       <div className={'flex flex-col gap-4 w-full'}>
         <FiltrationCard/>
         <div className={'flex gap-4 justify-end'}>
-          {user?.role === 'admin' ? <CsvButton className="h-full"/> : ''}
+          {user?.role === 'admin' ? <CsvButton className="h-full" searchParams={filterParams}/> : ''}
           <div className={'flex flex-col gap-2'}>
             <Label className={'text-sm'}>Liczba zgłoszeń na stronę:</Label>
             <PageSizeSelect defaultValue={pageSize}/>

@@ -1,22 +1,28 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using server.Data;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using server.Services;
 using Microsoft.Extensions.FileProviders;
+using System.Text;
+using System.Reflection;
+
+using server.Data;
+using server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Add services
 builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHttpClient();
-builder.Services.AddHttpClient<MailerService>();
-builder.Services.AddScoped<IAIService, AIService>();
+
+// Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", policy =>
@@ -28,6 +34,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Authentication
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
@@ -39,7 +46,6 @@ builder.Services.AddAuthentication("Bearer")
                 return Task.CompletedTask;
             }
         };
-
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = false,
@@ -51,38 +57,23 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
+// DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Other services
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<MailerService>();
+builder.Services.AddScoped<IAIService, AIService>();
 
 var app = builder.Build();
 
+// CORS
 app.UseCors("AllowNextJs");
 
-
-// Automatic Migration
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-    DbSeeder.Seed(db);
-}
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-
-app.UseStaticFiles(); // domyślnie udostępnia wwwroot
+// Static files
+app.UseStaticFiles(); // wwwroot
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -91,10 +82,26 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
+// Swagger
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BuyGuard API V1");
+    c.RoutePrefix = "swagger";
+});
+
+// Middleware
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+
+// DB migration + seeding
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+    DbSeeder.Seed(db);
 }
 
 app.Run();

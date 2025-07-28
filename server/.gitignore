@@ -30,3 +30,9 @@ publish/
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+#appsettings
+*.json
+
+appsettings.json
+appsettings.Development.json

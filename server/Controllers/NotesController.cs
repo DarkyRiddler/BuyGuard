@@ -61,6 +61,14 @@ public class NotesController : ControllerBase
                 recipients.AddRange(ceoUsers.Where(u => u.Id != userId));
                 recipients.AddRange(managerUsers.Where(u => u.Id != userId));
                 
+                if (requestEntity.Manager != null && requestEntity.ManagerId != userId)
+                {
+                    if (!recipients.Any(r => r.Id == requestEntity.ManagerId))
+                    {
+                        recipients.Add(requestEntity.Manager);
+                    }
+                }
+                
                 foreach (var recipient in recipients)
                 {
                     var recipientName = $"{recipient.FirstName} {recipient.LastName}";
@@ -76,7 +84,6 @@ public class NotesController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd wysyłania powiadomień email o nowej notatce: {ex.Message}");
         }
 
         return Ok(new

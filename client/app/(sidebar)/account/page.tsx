@@ -57,7 +57,7 @@ export default async function Account() {
         <CardFooter className="flex flex-col items-center space-y-2">
           <ResetPasswordDialog/>
           <LogoutButton/>
-          <CompanySettingsForm token={token} />
+          {user?.role === 'admin' && <CompanySettingsForm token={token} />}
         </CardFooter>
       </Card>
     );
