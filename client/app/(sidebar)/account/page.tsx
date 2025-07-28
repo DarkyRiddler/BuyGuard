@@ -39,7 +39,7 @@ export default async function Account() {
             className="font-bold text-slate-950 dark:text-sky-50">{user.firstName} {user.lastName}</span></CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 w-full text-2xl mb-5">
+          <div className="space-y-2 w-full text-2xl mb-5 px-6">
             <div className="flex justify-between">
               <span className="font-semibold text-slate-950 dark:text-sky-50">Adres e-mail: </span>
               <span>{user.email}</span>

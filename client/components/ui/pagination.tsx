@@ -59,7 +59,7 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
-        className
+        className = "dark:text-sky-50"
       )}
       {...props}
     />
