@@ -39,6 +39,7 @@ export interface Note {
 }
 
 export interface Attachment {
+  id: string;
   fileUrl: string;
   mimeType: string;
 }
