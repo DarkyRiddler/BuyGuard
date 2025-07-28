@@ -9,11 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
-import { Request } from '@/types';
+import { Request, RequestStatus } from '@/types';
 import { Pencil, Trash2, Save, X } from 'lucide-react';
 import { useUser } from '@/context/user-context';
+import { isAxiosError } from 'axios';
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://localhost:7205';
 
@@ -38,6 +48,9 @@ export default function InputForm() {
   const [request, setRequest] = useState<Request | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [status, setStatus] = useState<RequestStatus | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNote, setNewNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -49,6 +62,7 @@ export default function InputForm() {
       try {
         const res = await axios.get(`/api/Requests/${id}`);
         setRequest(res.data);
+        setStatus(res.data.status);
         console.log(res.data);
       } catch (error) {
         toast.error('Nie udało się pobrać danych zgłoszenia');
@@ -117,13 +131,30 @@ export default function InputForm() {
   if (loading) return <p>Ładowanie...</p>;
   if (!request) return <p>Brak danych.</p>;
 
+  async function handleStatusChange(newVal: RequestStatus) {
+    try {
+      setStatusUpdating(true);
+      const { data } = await axios.patch(`/api/Requests/${id}/status`, { status: newVal });
+      setStatus(newVal);
+      toast.success(data.message);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        console.error('Error fetching requests:', error.response?.data || error.message);
+        toast.error(error.response?.data || error.message);
+      } else {
+        console.error('Unexpected error:', error);
+      }
+    } finally {
+      setStatusUpdating(false);
+    }
+  }
 
   return (
     <Card className="min-w-150">
       <CardHeader>
         <CardTitle className="mx-auto text-2xl">
           <span className="font-bold text-slate-950 dark:text-sky-50">
-            {request.title} {request.aiScore == null && (user?.role==='admin' || user?.role==='manager') ? '' : "- Ai Score: "+request.aiScore}
+            {request.title} {request.aiScore == null && (user?.role === 'admin' || user?.role === 'manager') ? '' : '- Ai Score: ' + request.aiScore}
           </span>
         </CardTitle>
       </CardHeader>
@@ -145,10 +176,29 @@ export default function InputForm() {
           <div className="flex justify-between">
             <span className="font-semibold text-slate-950 dark:text-sky-50">Link:</span>
             <span>
-              <a target="_blank" rel="noopener noreferrer" href={"https://" + request.url}>
+              <a target="_blank" rel="noopener noreferrer" href={'https://' + request.url}>
                 {request.url}
               </a>
             </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-semibold text-slate-950 dark:text-sky-50">Status:</span>
+            {user?.role !== 'employee' && (
+              <Select value={status as string} disabled={statusUpdating}
+                      onValueChange={(newVal) => handleStatusChange(newVal as RequestStatus)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue/>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Statusy</SelectLabel>
+                    <SelectItem value="czeka">Oczekujący</SelectItem>
+                    <SelectItem value="potwierdzono">Zatwierdź</SelectItem>
+                    <SelectItem value="odrzucono">Odrzuć</SelectItem>
+                    <SelectItem value="zakupione">Zakupiony</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>)}
           </div>
           {request.attachments && request.attachments.length > 0 && (
             <div className="mt-6">
@@ -166,7 +216,8 @@ export default function InputForm() {
                           className="w-full h-48 object-cover rounded"
                         />
                       ) : (
-                        <div className="flex flex-col items-center justify-center h-48 bg-gray-100 dark:bg-gray-700 rounded">
+                        <div
+                          className="flex flex-col items-center justify-center h-48 bg-gray-100 dark:bg-gray-700 rounded">
                           <span className="text-sm text-gray-600 dark:text-gray-300"> PDF lub inny plik</span>
                         </div>
                       )}
@@ -210,14 +261,14 @@ export default function InputForm() {
                         onClick={() => handleSaveEdit(note.id)}
                         className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
                       >
-                        <Save size={16} className="inline-block mr-1" />
+                        <Save size={16} className="inline-block mr-1"/>
                         Zapisz
                       </button>
                       <button
                         onClick={() => setEditingNoteId(null)}
                         className="bg-gray-300 text-black px-3 py-1 rounded hover:bg-gray-400"
                       >
-                        <X size={16} className="inline-block mr-1" />
+                        <X size={16} className="inline-block mr-1"/>
                         Anuluj
                       </button>
                     </div>
@@ -242,14 +293,14 @@ export default function InputForm() {
                           className="text-blue-500 hover:text-blue-700"
                           title="Edytuj"
                         >
-                          <Pencil size={16} />
+                          <Pencil size={16}/>
                         </button>
                         <button
                           onClick={() => handleDeleteNote(note.id)}
                           className="text-red-500 hover:text-red-700"
                           title="Usuń"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={16}/>
                         </button>
                       </div>
                     )}
