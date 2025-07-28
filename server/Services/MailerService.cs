@@ -7,9 +7,11 @@ namespace server.Services;
 public class MailerService
 {
     private readonly HttpClient _httpClient;
-    private const string ApiKey = "mlsn.0036ab0e09377a97fcf4ff6d74183e93eb9a4cf729ea484fd94503ca5901f007"; // Zamień na swój API token
-    private const string SenderEmail = "noreply@test-3m5jgrodk3xgdpyo.mlsender.net"; // zweryfikowany sender
+    //TUTAJ WKLEIĆ BRAKUJĄCE RZECZY!!!
+    private const string ApiKey = "";
+    private const string SenderEmail = "";
 
+    //
     public MailerService(HttpClient httpClient)
     {
         _httpClient = httpClient;
