@@ -12,6 +12,10 @@ import axios from '@/lib/utils';
 import { useState } from 'react';
 import { isAxiosError } from 'axios';
 import { useUser } from '@/context/user-context';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+
 
 const FormSchema = z.object({
   firstname: z.string().min(1, {
@@ -89,6 +93,21 @@ export default function RegisterForm() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  if (user?.role !== 'admin' && user?.role !== 'manager') {
+        return (
+            <Card>
+                <CardContent className="py-8">
+                    <Alert className="border-red-200 bg-red-50">
+                        <AlertDescription className="text-red-800">
+                            Nie masz uprawnień do tworzenia kont użytkowników
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
+        );
+    }
+
 
   return (
     <Form {...form}>
@@ -203,7 +222,7 @@ export default function RegisterForm() {
             )}
           />
         )}
-        <Button type="submit" className={'w-full'}>Zarejestruj</Button>
+        <Button type="submit" className={'w-full'}>{user?.role === 'admin' ? 'Zarejestruj menadżera' : 'Zarejestruj pracownika'}</Button>
       </form>
     </Form>
   );

@@ -64,7 +64,7 @@ export default async function RequestListPage({ searchParams }: Props) {
       <div className={'flex flex-col gap-4 w-full'}>
         <FiltrationCard/>
         <div className={'flex gap-4 justify-end'}>
-          <CsvButton className="h-full"/>
+          {user?.role === 'admin' ? <CsvButton className="h-full"/> : ''}
           <div className={'flex flex-col gap-2'}>
             <Label className={'text-sm'}>Liczba zgłoszeń na stronę:</Label>
             <PageSizeSelect defaultValue={pageSize}/>

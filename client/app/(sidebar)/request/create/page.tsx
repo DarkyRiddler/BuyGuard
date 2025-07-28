@@ -19,6 +19,9 @@ import axios from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import {Textarea} from '@/components/ui/textarea';
 import { isAxiosError } from 'axios';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUser } from '@/context/user-context';
 
 
 
@@ -43,6 +46,8 @@ const FormSchema = z.object({
 
 
 export default function InputForm() {
+  const user = useUser();
+
   const imageRef = useRef<File | null>(null);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -54,7 +59,19 @@ export default function InputForm() {
       link: '',
     },
   });
-
+  if (user?.role === 'admin' || user?.role === 'manager') {
+        return (
+            <Card>
+                <CardContent className="py-8">
+                    <Alert className="border-red-200 bg-red-50">
+                        <AlertDescription className="text-red-800">
+                            Nie masz uprawnień do tworzenia zgłoszeń.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
+        );
+    }
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
   try {

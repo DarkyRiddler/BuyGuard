@@ -11,9 +11,13 @@ import {
 } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
+import { Request } from '@/types';
+import { Pencil, Trash2, Save, X } from 'lucide-react';
+import { useUser } from '@/context/user-context';
 
 
 export default function InputForm() {
+  const user = useUser();
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
@@ -40,12 +44,13 @@ export default function InputForm() {
   if (loading) return <p>Ładowanie...</p>;
   if (!request) return <p>Brak danych.</p>;
 
+
   return (
     <Card className="min-w-200">
       <CardHeader>
         <CardTitle className="mx-auto text-2xl">
           <span className="text-4xl font-semibold text-slate-950 dark:text-sky-50">
-            {request.title}
+            {request.title} {request.aiScore == null && (user?.role==='admin' || user?.role==='manager') ? '' : "- Ai Score: "+request.aiScore}
           </span>
         </CardTitle>
       </CardHeader>
@@ -90,12 +95,13 @@ export default function InputForm() {
         >
           Powrót do listy
         </button>
-        <button
+        {user?.role === 'employee' && request.status === 'czeka' ? <button
           onClick={() => router.push(`/request/edit/${id}`)}
           className="text-2xl bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 hover:cursor-pointer"
         >
           Edytuj zgłoszenie
-        </button>
+        </button> : ''}
+
       </CardFooter>
     </Card>
   );

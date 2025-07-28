@@ -18,8 +18,11 @@ import { Input } from '@/components/ui/input';
 import axios from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import {Textarea} from '@/components/ui/textarea';
 import { Request } from '@/types';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUser } from '@/context/user-context';
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -42,11 +45,13 @@ const FormSchema = z.object({
 
 
 export default function InputForm() {
-    const params = useParams();
-    const id = params.id as string;
-    console.log(id);
-    const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const user = useUser();
+  
+  const params = useParams();
+  const id = params.id as string;
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  
+  const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: '',
@@ -85,7 +90,20 @@ export default function InputForm() {
        fetchRequest(id);
      }, [id, form]);
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    if (user?.role === 'admin' || user?.role === 'manager') {
+        return (
+            <Card>
+                <CardContent className="py-8">
+                    <Alert className="border-red-200 bg-red-50">
+                        <AlertDescription className="text-red-800">
+                            Nie masz uprawnień do edycji zgłoszeń.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
+        );
+    }
+  const onSubmit = async (data: FormValues) => {
     try {
       const res = await axios.put(`api/Requests/${id}`, data);
       console.log('Response from server:', res);
