@@ -14,11 +14,13 @@ public class RequestsController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
 	private readonly IAIService _aiService;
+    private readonly MailerService _mailerService;
 
-    public RequestsController(ApplicationDbContext db, IAIService aiService)
+    public RequestsController(ApplicationDbContext db, IAIService aiService, MailerService mailerService)
     {
         this._db = db;
 		this._aiService = aiService;
+        this._mailerService = mailerService;
     }
 
     [HttpGet]
@@ -241,10 +243,12 @@ public class RequestsController : ControllerBase
             .FirstOrDefaultAsync();
 
         int assignedManagerId;
+        User? assignedManager = null;
 
         if (matchingManager != null)
         {
             assignedManagerId = matchingManager.Id;
+            assignedManager = matchingManager;
         }
         else
         {
@@ -252,8 +256,9 @@ public class RequestsController : ControllerBase
             if (admin == null)
                 return BadRequest("Brak dostępnego administratora.");
             assignedManagerId = admin.Id;
+            assignedManager = admin;
         }
-
+        var currentUser = await _db.User.FirstOrDefaultAsync(u => u.Id == clientId);
         var newRequest = new Request
         {
             Title = request.title,
@@ -272,7 +277,28 @@ public class RequestsController : ControllerBase
 
         _db.Request.Add(newRequest);
         await _db.SaveChangesAsync();
-		    try
+        try
+        {
+            if (assignedManager != null && currentUser != null)
+            {
+                var managerName = $"{assignedManager.FirstName} {assignedManager.LastName}";
+                var userName = $"{currentUser.FirstName} {currentUser.LastName}";
+                
+                await _mailerService.SendNewRequestNotificationAsync(
+                    assignedManager.Email,
+                    managerName,
+                    request.title,
+                    userName,
+                    request.amount_pln,
+                    request.description
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd wysyłania powiadomienia email o nowym zgłoszeniu: {ex.Message}");
+        }
+        try
         {
             await _aiService.GenerateAIScoreForRequest(newRequest.Id, _db);
         }
@@ -376,7 +402,10 @@ public class RequestsController : ControllerBase
         if (userRole != "manager" && userRole != "admin")
             return Forbid("Tylko menedżer lub admin może zmieniać status");
 
-        var request = await _db.Request.FirstOrDefaultAsync(r => r.Id == id);
+        var request = await _db.Request
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Id == id);
+        
         if (request == null)
             return NotFound("Zgłoszenie nie zostało znalezione");
         if (userRole == "manager" && request.ManagerId != clientId)
@@ -405,6 +434,25 @@ public class RequestsController : ControllerBase
 
         await _db.SaveChangesAsync();
 
+        try
+        {
+            if (request.User != null)
+            {
+                var userName = $"{request.User.FirstName} {request.User.LastName}";
+                await _mailerService.SendStatusChangeNotificationAsync(
+                    request.User.Email,
+                    userName,
+                    request.Title,
+                    statusDto.Status,
+                    statusDto.Reason
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd wysłania noti email updreq {ex.Message}");
+        }
+        
         return Ok(new
         {
             id = request.Id,
