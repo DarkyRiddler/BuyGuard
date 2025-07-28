@@ -40,7 +40,7 @@ public class AttachmentsController : ControllerBase
 
         if (file == null || file.Length == 0)
             return BadRequest("Plik jest pusty");
-        var allowedTypes = new[] { "image/jpeg", "image/png", "application/pdf" };
+        var allowedTypes = new[] { "image/jpeg", "image/png", "application/pdf"};
 
         if (file.Length > 5 * 1024 * 1024)
             return BadRequest("Plik przekracza limit 5 MB");
@@ -99,6 +99,15 @@ public class AttachmentsController : ControllerBase
         return Ok(attachments);
     }
 
+    /// <summary>
+    /// Pobiera plik załącznika powiązanego ze zgłoszeniem.
+    /// </summary>
+    /// <param name="attachmentId">Identyfikator załącznika</param>
+    /// <returns>Plik binarny jako odpowiedź</returns>
+    /// <response code="200">Zwraca plik jako strumień</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak dostępu do pliku</response>
+    /// <response code="404">Załącznik nie istnieje lub brak pliku fizycznego</response>
     [HttpGet("{attachmentId}/download")]
     public async Task<IActionResult> DownloadAttachment(int attachmentId)
     {
