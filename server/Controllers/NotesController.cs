@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using server.DTOs.Note;
 using server.Data;
 using server.Models;
+using server.Services;
 
 [Authorize]
 [ApiController]
@@ -12,10 +13,12 @@ using server.Models;
 public class NotesController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
+    private readonly MailerService _mailerService;
 
-    public NotesController(ApplicationDbContext db)
+    public NotesController(ApplicationDbContext db, MailerService mailerService)
     {
         this._db = db;
+        this._mailerService = mailerService;
     }
 
     [HttpPost("requests/{requestId}")]
@@ -26,13 +29,16 @@ public class NotesController : ControllerBase
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var requestEntity = await _db.Request.FirstOrDefaultAsync(r => r.Id == requestId);
+        var requestEntity = await _db.Request
+            .Include(r => r.User)
+            .Include(r => r.Manager)
+            .FirstOrDefaultAsync(r => r.Id == requestId);
         if (requestEntity == null)
             return NotFound("Zgłoszenie nie istnieje");
 
         if (userRole != "admin" && requestEntity.UserId != userId && requestEntity.ManagerId != userId)
             return Forbid("Brak uprawnień do dodawania notatek do tego zgłoszenia");
-
+        var currentUser = await _db.User.FirstOrDefaultAsync(u => u.Id == userId);
         var newNote = new Note
         {
             RequestId = requestId,
@@ -43,6 +49,35 @@ public class NotesController : ControllerBase
 
         await _db.Note.AddAsync(newNote);
         await _db.SaveChangesAsync();
+        try
+        {
+            if (currentUser != null)
+            {
+                var noteAuthor = $"{currentUser.FirstName} {currentUser.LastName}";
+                var ceoUsers = await _db.User.Where(u => u.Role == "admin").ToListAsync();
+                var managerUsers = await _db.User.Where(u => u.Role == "manager").ToListAsync();
+                
+                var recipients = new List<User>();
+                recipients.AddRange(ceoUsers.Where(u => u.Id != userId));
+                recipients.AddRange(managerUsers.Where(u => u.Id != userId));
+                
+                foreach (var recipient in recipients)
+                {
+                    var recipientName = $"{recipient.FirstName} {recipient.LastName}";
+                    await _mailerService.SendNoteAddedNotificationAsync(
+                        recipient.Email,
+                        recipientName,
+                        requestEntity.Title,
+                        noteAuthor,
+                        request.Body
+                    );
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd wysyłania powiadomień email o nowej notatce: {ex.Message}");
+        }
 
         return Ok(new
         {

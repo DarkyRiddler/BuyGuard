@@ -14,6 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<MailerService>();
 builder.Services.AddScoped<IAIService, AIService>();
 builder.Services.AddCors(options =>
 {
