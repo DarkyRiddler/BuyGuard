@@ -15,6 +15,8 @@ import { Request } from '@/types';
 import { Pencil, Trash2, Save, X } from 'lucide-react';
 import { useUser } from '@/context/user-context';
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://localhost:7205';
+
 interface Note {
   id: number;
   body: string;
@@ -148,6 +150,40 @@ export default function InputForm() {
               </a>
             </span>
           </div>
+          {request.attachments && request.attachments.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-xl font-bold mb-3">Załączniki</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {request.attachments.map((att, index) => {
+                  const isImage = att.mimeType.startsWith('image/');
+                  return (
+                    <div key={index} className="border rounded p-2 shadow-sm bg-white dark:bg-slate-800">
+                      {isImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`${baseUrl}${att.fileUrl}`}
+                          alt={`Załącznik ${index + 1}`}
+                          className="w-full h-48 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-48 bg-gray-100 dark:bg-gray-700 rounded">
+                          <span className="text-sm text-gray-600 dark:text-gray-300"> PDF lub inny plik</span>
+                        </div>
+                      )}
+                      <a
+                        href={`${baseUrl}${att.fileUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-center text-blue-600 hover:underline text-sm"
+                      >
+                        Pobierz
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sekcja notatek */}

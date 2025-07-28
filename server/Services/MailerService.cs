@@ -8,7 +8,7 @@ public class MailerService
 {
     private readonly HttpClient _httpClient;
     //TUTAJ WKLEIĆ BRAKUJĄCE RZECZY!!!
-    private const string ApiKey = "";
+	private const string ApiKey = "";
     private const string SenderEmail = "";
 
     //
@@ -19,21 +19,43 @@ public class MailerService
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
+	public async Task SendEmailAsync(string toEmail, string subject, string text)
+	{
+    	if (string.IsNullOrEmpty(toEmail) || !toEmail.Contains("@"))
+    	{
+        	throw new ArgumentException("Nieprawidllwy format maiala");
+    	}
 
-    public async Task SendEmailAsync(string toEmail, string subject, string text)
-    {
-        var payload = new
-        {
-            from = new { email = SenderEmail },
-            to = new[] { new { email = toEmail } },
-            subject,
-            text
-        };
+    	var payload = new
+    	{
+        	from = new { email = SenderEmail, name = "BuyGuard System" },
+        	to = new[] { new { email = toEmail } },
+        	subject,
+        	html = $"<html><body><pre>{text}</pre></body></html>",
+        	text
+    	};
 
-        var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        var response = await _httpClient.PostAsync("email", content);
-        response.EnsureSuccessStatusCode(); // rzuci wyjątek jak status != 2xx
-    }
+    	var jsonPayload = JsonSerializer.Serialize(payload);
+    	Console.WriteLine($"JSON Payload: {jsonPayload}");
+    
+    	var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+    
+    	try
+    	{
+        	var response = await _httpClient.PostAsync("email", content);
+        
+        	if (!response.IsSuccessStatusCode)
+        	{
+            	var responseContent = await response.Content.ReadAsStringAsync();
+        	}    
+        	response.EnsureSuccessStatusCode();
+    	}
+    	catch (Exception ex)
+    	{
+        	throw;
+    	}
+	}
+
     public async Task SendStatusChangeNotificationAsync(string userEmail, string userName, string requestTitle, string newStatus, string? reason = null)
     {
         var subject = $"Zmiana statusu zgłoszenia: {requestTitle}";
