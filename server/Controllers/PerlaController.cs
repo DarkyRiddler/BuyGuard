@@ -211,6 +211,7 @@ public class PerlaController : ControllerBase
             .Select(r => new
             {
                 r.Id,
+                r.Status,
                 r.Title,
                 r.Description,
                 r.AmountPln,
@@ -229,13 +230,13 @@ public class PerlaController : ControllerBase
 
         var sep = ";";
         var sbData = new StringBuilder();
-        sbData.AppendLine(string.Join(sep, "Id", "Title", "Description", "AmountPln", "Reason",
+        sbData.AppendLine(string.Join(sep, "Id", "Status", "Title", "Description", "AmountPln", "Reason",
             "AiScore", "CreatedAt", "UpdatedAt", "UserId", "UserName",
             "UserEmail", "ManagerId", "ManagerName", "ManagerEmail"));
 
         foreach (var r in requestsList)
         {
-            sbData.AppendLine(string.Join(sep, r.Id, r.Title, r.Description, r.AmountPln, r.Reason,
+            sbData.AppendLine(string.Join(sep, r.Id, r.Status, r.Title, r.Description, r.AmountPln, r.Reason,
                 r.AiScore, r.CreatedAt.ToString("dd-MM-yyyy HH:mm:ss"),
                 r.UpdatedAt?.ToString("dd-MM-yyyy HH:mm:ss") ?? "",
                 r.UserId, r.UserName, r.Email,
