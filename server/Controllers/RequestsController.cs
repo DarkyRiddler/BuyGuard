@@ -296,7 +296,6 @@ public class RequestsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd wysyłania powiadomienia email o nowym zgłoszeniu: {ex.Message}");
         }
         try
         {
@@ -452,7 +451,39 @@ public class RequestsController : ControllerBase
         {
             Console.WriteLine($"Błąd wysłania noti email updreq {ex.Message}");
         }
-        
+         if (!string.IsNullOrEmpty(statusDto.Reason))
+        {
+            try
+            {
+                var currentUser = await _db.User.FirstOrDefaultAsync(u => u.Id == clientId);
+                if (currentUser != null)
+                {
+                    var noteAuthor = $"{currentUser.FirstName} {currentUser.LastName}";
+                    var ceoUsers = await _db.User.Where(u => u.Role == "admin").ToListAsync();
+                    var managerUsers = await _db.User.Where(u => u.Role == "manager").ToListAsync();
+                    
+                    var recipients = new List<User>();
+                    recipients.AddRange(ceoUsers.Where(u => u.Id != clientId));
+                    recipients.AddRange(managerUsers.Where(u => u.Id != clientId));
+                    
+                    foreach (var recipient in recipients)
+                    {
+                        var recipientName = $"{recipient.FirstName} {recipient.LastName}";
+                        await _mailerService.SendNoteAddedNotificationAsync(
+                            recipient.Email,
+                            recipientName,
+                            request.Title,
+                            noteAuthor,
+                            $"Status zmieniony na {statusDto.Status}. Powód: {statusDto.Reason}"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd wysyłania powiadomień email o nowej notatce podczas zmiany statusu: {ex.Message}");
+            }
+        }
         return Ok(new
         {
             id = request.Id,
