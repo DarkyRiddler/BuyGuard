@@ -54,10 +54,10 @@ export default function DeleteButton({ userId }: DeleteButtonProps) {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex justify-end gap-3 pt-3">
-          <DialogClose className="cursor-pointer bg-slate-800 rounded-md">
+          <DialogClose className="cursor-pointer text-sky-50 bg-slate-800 hover:text-black font-semibold text-xl rounded-md px-3">
             Anuluj
           </DialogClose>
-          <Button className="bg-red-600 hover:bg-red-700" onClick={handleDelete}>
+          <Button className="bg-red-600 text-sky-50 hover:bg-red-700 hover:text-black" onClick={handleDelete}>
             Usuń
           </Button>
         </DialogFooter>

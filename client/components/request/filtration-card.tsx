@@ -96,9 +96,8 @@ export default function FiltrationCard() {
     router.push('?');
   };
   return (
-    <Card className="mb-6 rounded-2xl">
+    <Card className="mb-6 border-none shadow-none">
       <CardHeader>
-        <CardTitle className="text-lg">Filtry i sortowanie</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -106,7 +105,7 @@ export default function FiltrationCard() {
             <Label htmlFor="status">Status</Label>
             <Select value={filters.status || 'all'}
                     onValueChange={(value) => handleFilterChange('status', value === 'all' ? '' : value)}>
-              <SelectTrigger>
+              <SelectTrigger className='hover:cursor-pointer'>
                 <SelectValue placeholder="Wszystkie"/>
               </SelectTrigger>
               <SelectContent>
@@ -128,10 +127,10 @@ export default function FiltrationCard() {
             <Input
               id="minAmount"
               type="number"
-              step="0.01"
+              step="100"
               value={filters.minAmount}
               onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-              placeholder="0.00"
+              placeholder="0"
             />
           </div>
 
@@ -140,10 +139,10 @@ export default function FiltrationCard() {
             <Input
               id="maxAmount"
               type="number"
-              step="0.01"
+              step="100"
               value={filters.maxAmount}
               onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
-              placeholder="10000.00"
+              placeholder="10000"
             />
           </div>
 
@@ -178,12 +177,12 @@ export default function FiltrationCard() {
             <Label htmlFor="sortBy">Sortuj po</Label>
             <Select value={filters.sortBy || 'none'}
                     onValueChange={(value) => handleFilterChange('sortBy', value === 'none' ? '' : value)}>
-              <SelectTrigger>
+              <SelectTrigger className='hover:cursor-pointer'>
                 <SelectValue placeholder="Bez sortowania"/>
               </SelectTrigger>
               <SelectContent>
                 {sortOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className='hover:cursor-pointer'>
                     {option.label}
                   </SelectItem>
                 ))}
@@ -194,23 +193,23 @@ export default function FiltrationCard() {
           <div className="flex flex-col gap-2">
             <Label htmlFor="sortOrder">Kierunek sortowania</Label>
             <Select value={filters.sortOrder} onValueChange={(value) => handleFilterChange('sortOrder', value)}>
-              <SelectTrigger>
+              <SelectTrigger className='hover:cursor-pointer'>
                 <SelectValue/>
               </SelectTrigger>
               <SelectContent>
                 {sortOrderOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
+                  <SelectItem key={option.value} value={option.value} className='hover:cursor-pointer'>
                     {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <Button onClick={applyFilters}>
+          <div className="flex items-end justify-end gap-2">
+            <Button onClick={applyFilters} className='flex-1'>
               Zastosuj filtry
             </Button>
-            <Button onClick={clearFilters} variant="outline">
+            <Button onClick={clearFilters} variant="outline" className='text-xl font-medium flex-1'>
               Wyczyść filtry
             </Button>
           </div>

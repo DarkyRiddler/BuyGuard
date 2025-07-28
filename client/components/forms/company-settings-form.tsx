@@ -63,15 +63,14 @@ export function CompanySettingsForm({ token }: { token: string }) {
 
   return (
     <div className="mt-8 max-w-xl mx-auto space-y-4 w-full">
-      <h2 className="text-xl font-bold">Ustawienia firmy</h2>
 
       <div>
-        <Label>Nazwa firmy</Label>
+        <Label className='mb-2'>Nazwa firmy</Label>
         <Input value={name} onChange={e => setName(e.target.value)} />
       </div>
 
       <div>
-        <Label>Opis firmy</Label>
+        <Label className='mb-2'>Opis firmy</Label>
         <Textarea value={description} onChange={e => setDescription(e.target.value)} />
       </div>
 

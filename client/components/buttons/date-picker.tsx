@@ -38,7 +38,7 @@ export function DatePicker({ label, value, onChange }: Props) {
             {parsedDate ? format(parsedDate, "dd/MM/yyyy") : "Wybierz datę"}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0">
+        <PopoverContent className="w-auto p-0 text-sky-50">
           <Calendar
             mode="single"
             selected={parsedDate}

@@ -195,7 +195,7 @@ export default function UserList() {
                     </Alert>
                 )}
 
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 px-2">
                     <div className="text-sm text-gray-600">
                         {users.length} z {totalUsers} użytkowników (Strona {currentPage} z {totalPages})
                     </div>
@@ -217,7 +217,7 @@ export default function UserList() {
 
                 <Table>
                     <TableHeader>
-                        <TableRow>
+                        <TableRow className='dark:hover:bg-transparent'>
                             <TableHead>Imię</TableHead>
                             <TableHead>Nazwisko</TableHead>
                             <TableHead>Email</TableHead>
