@@ -1,21 +1,33 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using server.Data;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using server.Services;
 using Microsoft.Extensions.FileProviders;
+using System.Text;
+
+using server.Data;
+using server.Services;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Services
 builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
+
+
 builder.Services.AddEndpointsApiExplorer();
+
+// Swagger
+builder.Services.AddSwaggerGen(c =>
+{
+    // Dodaj to wewnątrz tej funkcji
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
+
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IAIService, AIService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", policy =>
@@ -57,10 +69,18 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+// CORS
 app.UseCors("AllowNextJs");
 
+// Swagger
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BuyGuard API V1");
+    c.RoutePrefix = "swagger";
+});
 
-// Automatic Migration
+// Automatic migration and seeding
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -69,19 +89,22 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    // app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+
+// Middleware
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.UseStaticFiles(); // domyślnie udostępnia wwwroot
+app.UseStaticFiles(); // wwwroot
 
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -90,6 +113,7 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
+// Ensure DB migration
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -97,3 +121,4 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
