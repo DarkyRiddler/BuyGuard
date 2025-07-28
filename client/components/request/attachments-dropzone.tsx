@@ -1,7 +1,7 @@
 ﻿'use client';
 import {
   Dropzone,
-  DropZoneArea,
+  DropZoneArea, DropzoneDescription,
   DropzoneFileList,
   DropzoneFileListItem,
   DropzoneMessage,
@@ -12,7 +12,7 @@ import {
 import { CloudUploadIcon, Trash2Icon } from 'lucide-react';
 import { useRef } from 'react';
 
-export function AttachmentsDropzone({ onFilesChange }: { onFilesChange?: (files: File[]) => void; }) {
+export function AttachmentsDropzone({ onFilesChange, title }: { onFilesChange?: (files: File[]) => void; title?: string }) {
   const dropzoneRef = useRef<File[]>([]);
 
   const dropzone = useDropzone({
@@ -48,6 +48,7 @@ export function AttachmentsDropzone({ onFilesChange }: { onFilesChange?: (files:
       <Dropzone {...dropzone}>
         <div>
           <div className="flex justify-between">
+            <DropzoneDescription>{title}</DropzoneDescription>
             <DropzoneMessage/>
           </div>
           <DropZoneArea>
