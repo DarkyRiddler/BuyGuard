@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 // TODO osobno zrobić monthly i osobno zrobić ogólny 
 
+//
 [ApiController]
 [Route("api/[controller]")]
 [Authorize] // tylko admin moze eksportować dane
@@ -18,7 +19,7 @@ public class PerlaController : ControllerBase
     public PerlaController(ApplicationDbContext db)
     {
         this._db = db;
-        }
+    }
     [HttpGet("export")]
     public async Task<IActionResult> ExportRequests()
     {

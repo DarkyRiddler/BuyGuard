@@ -226,10 +226,10 @@ public static class DbSeeder
         context.Request.AddRange(requests);
         context.SaveChanges();
 
-        var attachments = new List<Attachment>
+       var attachments = new List<Attachment>
         {
-            new() { RequestId = requests[0].Id, FileUrl = "https://example.com/invoice.pdf", MimeType = "application/pdf" },
-            new() { RequestId = requests[0].Id, FileUrl = "https://example.com/specs.docx", MimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
+            new() { RequestId = requests[0].Id, FileUrl = "/uploads/attachments/zdjecie1.png", MimeType = "image/png" },
+            new() { RequestId = requests[0].Id, FileUrl = "/uploads/attachments/zdjecie2.jpeg", MimeType = "image/jpeg" }
         };
         context.Attachment.AddRange(attachments);
 
