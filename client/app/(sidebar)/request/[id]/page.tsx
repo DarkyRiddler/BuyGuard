@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { Request } from '@/types';
 import { Pencil, Trash2, Save, X } from 'lucide-react';
+import { useUser } from '@/context/user-context';
 
 interface Note {
   id: number;
@@ -27,6 +28,7 @@ interface Note {
 }
 
 export default function InputForm() {
+  const user = useUser();
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
@@ -113,12 +115,13 @@ export default function InputForm() {
   if (loading) return <p>Ładowanie...</p>;
   if (!request) return <p>Brak danych.</p>;
 
+
   return (
     <Card className="min-w-150">
       <CardHeader>
         <CardTitle className="mx-auto text-2xl">
           <span className="font-bold text-slate-950 dark:text-sky-50">
-            {request.title} {request.aiScore == null ? '' : "- Ai Score: "+request.aiScore}
+            {request.title} {request.aiScore == null && (user?.role==='admin' || user?.role==='manager') ? '' : "- Ai Score: "+request.aiScore}
           </span>
         </CardTitle>
       </CardHeader>
@@ -246,12 +249,13 @@ export default function InputForm() {
         >
           Powrót do listy
         </button>
-        <button
+        {user?.role === 'employee' && request.status === 'czeka' ? <button
           onClick={() => router.push(`/request/edit/${id}`)}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Edytuj zgłoszenie
-        </button>
+        </button> : ''}
+
       </CardFooter>
     </Card>
   );
