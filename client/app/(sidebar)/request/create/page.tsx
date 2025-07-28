@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { isAxiosError } from 'axios';
 import { AttachmentsDropzone } from '@/components/request/attachments-dropzone';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useUser } from '@/context/user-context';
 
 
@@ -45,8 +45,6 @@ const FormSchema = z.object({
 
 export default function InputForm() {
   const user = useUser();
-
-  const imageRef = useRef<File | null>(null);
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -99,7 +97,6 @@ export default function InputForm() {
       toast.success('Zgłoszenie zostało pomyślnie utworzone');
       form.reset();
       attachmentsRef.current = [];
-      // Reset attachment component by changing key
       setAttachmentKey(prev => prev + 1);
     } catch (error) {
       if (isAxiosError(error)) {

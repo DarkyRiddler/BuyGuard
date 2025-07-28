@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import axios from '@/lib/utils';
-import { Plus } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -49,7 +48,6 @@ const FormSchema = z.object({
   url: z.string().regex(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, { 
     message: 'Podaj poprawny adres URL' 
   }),
-  image: z.any().optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -69,7 +67,6 @@ export default function InputForm() {
       description: '',
       reason: '',
       url: '',
-      image: undefined,
     },
   });
 
@@ -83,15 +80,8 @@ export default function InputForm() {
           description: res.data.description || '',
           reason: res.data.reason || '',
           url: res.data.url || '',
-          image: undefined,
         });
 
-        const attachmentsRes = await axios.get(`/api/Attachments/requests/${id}/attachment`);
-        const firstAttachment = attachmentsRes.data?.[0];
-
-        if (firstAttachment?.fileUrl && firstAttachment.mimeType.startsWith('image/')) {
-          setExistingImageUrl(firstAttachment.fileUrl);
-        }
       } catch(error) {
         console.error('Error fetching request:', error);
         toast.error('Nie udało się pobrać danych zgłoszenia');
@@ -205,50 +195,6 @@ export default function InputForm() {
               <FormLabel>Link:</FormLabel>
               <FormControl>
                 <Input type="text" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Zdjęcie:</FormLabel>
-              <FormControl>
-                <div className="flex items-center gap-4">
-                  <label
-                    htmlFor="upload"
-                    className="cursor-pointer w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center hover:bg-gray-100 transition"
-                  >
-                    <Plus className="w-6 h-6 text-gray-500" />
-                    <input
-                      id="upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) field.onChange(file);
-                      }}
-                    />
-                  </label>
-
-                  {field.value ? (
-                    <img
-                      src={URL.createObjectURL(field.value)}
-                      alt="Podgląd"
-                      className="w-24 h-24 object-cover rounded-xl border"
-                    />
-                  ) : existingImageUrl ? (
-                    <img
-                      src={existingImageUrl}
-                      alt="Istniejący załącznik"
-                      className="w-24 h-24 object-cover rounded-xl border"
-                    />
-                  ) : null}
-                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
