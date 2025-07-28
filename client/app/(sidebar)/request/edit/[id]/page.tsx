@@ -19,6 +19,9 @@ import axios from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUser } from '@/context/user-context';
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -52,6 +55,8 @@ const FormSchema = z.object({
 type FormValues = z.infer<typeof FormSchema>;
 
 export default function InputForm() {
+  const user = useUser();
+  
   const params = useParams();
   const id = params.id as string;
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
@@ -95,6 +100,19 @@ export default function InputForm() {
     fetchRequest(id);
   }, [id, form]);
 
+    if (user?.role === 'admin' || user?.role === 'manager') {
+        return (
+            <Card>
+                <CardContent className="py-8">
+                    <Alert className="border-red-200 bg-red-50">
+                        <AlertDescription className="text-red-800">
+                            Nie masz uprawnień do edycji zgłoszeń.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
+        );
+    }
   const onSubmit = async (data: FormValues) => {
     try {
       console.log(data, data.amountPln);
