@@ -98,36 +98,4 @@ public class AttachmentsController : ControllerBase
 
         return Ok(attachments);
     }
-
-    [HttpGet("{attachmentId}/download")]
-    public async Task<IActionResult> DownloadAttachment(int attachmentId)
-    {
-        var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userRole = User.FindFirstValue(ClaimTypes.Role);
-        if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
-            return Unauthorized();
-
-        var attachment = await _db.Attachment
-            .Include(a => a.Request)
-            .FirstOrDefaultAsync(a => a.Id == attachmentId);
-
-        if (attachment == null)
-            return NotFound("Załącznik nie istnieje");
-
-        if (attachment.Request == null)
-            return BadRequest("Załącznik niepowiązany z żadnym zgłoszeniem");
-
-        if (userRole != "admin" && attachment.Request.UserId != clientId && attachment.Request.ManagerId != clientId)
-            return Forbid("Brak dostępu do tego pliku");
-
-        var uploadsFolder = Path.Combine("uploads", "attachments");
-        var fileName = Path.GetFileName(attachment.FileUrl);
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        if (!System.IO.File.Exists(filePath))
-            return NotFound("Plik nie istnieje fizycznie na serwerze");
-
-        var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        return File(stream, attachment.MimeType ?? "application/octet-stream");
-    }
 }

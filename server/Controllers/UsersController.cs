@@ -107,39 +107,6 @@ public class UsersController : ControllerBase
             totalUsers
         });
     }
-
-    [Authorize]
-    [HttpGet("deleted")]
-    public async Task<IActionResult> GetDeletedUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-    {
-        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-        if (currentUserRole != "admin")
-            return Forbid("Tylko CEO może przeglądać deleted userów1");
-        var usersQuery = _db.User
-            .Where(u => u.IsDeleted && u.Role != "admin")
-            .Select(u => new
-            {
-                u.Id,
-                u.Role,
-                u.FirstName,
-                u.LastName,
-                u.Email,
-                u.ManagerLimitPln
-            });
-        var totalUsers = await usersQuery.CountAsync();
-        var totalPages = (int)Math.Ceiling((double)totalUsers / pageSize);
-        var users = await usersQuery
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-        return Ok(new
-        {
-            user = users,
-            totalPages,
-            currentPage = page,
-            totalUsers
-        });
-    }
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetCurrentUser()
@@ -185,21 +152,6 @@ public class UsersController : ControllerBase
         await _db.SaveChangesAsync();
 
         return Ok(new List<object>());
-    }
-
-    [Authorize]
-    [HttpPost("{id}/restore")]
-    public async Task<IActionResult> RestoreUser(int id)
-    {
-        var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-        if (currentUserRole != "admin") return Forbid("Tylko CEO może przywracać M/U");
-        var user = await _db.User.FirstOrDefaultAsync(u => u.Id == id);
-        if (user == null || !user.IsDeleted) return NotFound();
-        if (user.Role == "admin") return Forbid("Admina nie przywracamy!");
-        user.IsDeleted = false;
-        _db.User.Update(user);
-        await _db.SaveChangesAsync();
-        return Ok(new { message = "Przywrócono konto użytkownika" });
     }
     [Authorize]
     [HttpPost]
