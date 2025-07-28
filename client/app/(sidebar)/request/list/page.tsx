@@ -71,6 +71,7 @@ export default async function RequestListPage({ searchParams }: Props) {
           </div>
         </div>
         <Table>
+          <TableCaption>A list of your recent invoices.</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[100px]">Kod</TableHead>
@@ -83,7 +84,7 @@ export default async function RequestListPage({ searchParams }: Props) {
           </TableHeader>
           <TableBody>
             {data.request.map((request: Request) => (
-              <TableRow key={request.id} className="hover:bg-gray-200">
+              <TableRow key={request.id} className="hover:bg-gray-200 dark:hover:bg-gray-800 dark:hover:text-white">
                 <TableCell className="font-medium">
                   <Link href={`/request/${request.id}`} className="block w-full h-full">
                     {request.id}

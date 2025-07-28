@@ -10,6 +10,7 @@ import {
 import { User } from '@/types';
 import ResetPasswordDialog from '@/components/forms/reset-password-dialog';
 import { LogoutButton } from '@/components/buttons/logout';
+import { CompanySettingsForm } from '@/components/forms/company-settings-form';
 
 export default async function Account() {
   const cookieStore = await cookies();
@@ -56,6 +57,7 @@ export default async function Account() {
         <CardFooter className="flex flex-col items-center space-y-2">
           <ResetPasswordDialog/>
           <LogoutButton/>
+          <CompanySettingsForm token={token} />
         </CardFooter>
       </Card>
     );
