@@ -98,6 +98,40 @@ public class AttachmentsController : ControllerBase
 
         return Ok(attachments);
     }
+    [HttpDelete("{attachmentId}")]
+    public async Task<IActionResult> DeleteAttachment(int attachmentId)
+    {
+        var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(clientIdClaim) || !int.TryParse(clientIdClaim, out var clientId))
+            return Unauthorized();
+
+        var attachment = await _db.Attachment
+            .Include(a => a.Request)
+            .FirstOrDefaultAsync(a => a.Id == attachmentId);
+
+        if (attachment == null)
+            return NotFound("Załącznik nie istnieje");
+
+        if (attachment.Request == null)
+            return BadRequest("Załącznik niepowiązany ze zgłoszeniem");
+
+        if (userRole != "admin" && attachment.Request.UserId != clientId && attachment.Request.ManagerId != clientId)
+            return Forbid("Brak dostępu do usunięcia pliku");
+
+        var uploadsFolder = Path.Combine("uploads", "attachments");
+        var fileName = Path.GetFileName(attachment.FileUrl);
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        if (System.IO.File.Exists(filePath))
+            System.IO.File.Delete(filePath);
+        else
+            return NotFound("Plik nie istnieje fizycznie na serwerze");
+        _db.Attachment.Remove(attachment);
+        await _db.SaveChangesAsync();
+
+        return Ok(new { message = "Załącznik usunięty" });
+    }
 
     /// <summary>
     /// Pobiera plik załącznika powiązanego ze zgłoszeniem.
