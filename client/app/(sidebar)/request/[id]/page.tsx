@@ -150,7 +150,7 @@ export default function InputForm() {
   }
 
   return (
-    <Card className="min-w-200">
+    <Card className="min-w-200 max-w-275 shadow-none">
       <CardHeader>
         <CardTitle className="mx-auto text-2xl">
           <span className="font-bold text-3xl text-slate-950 dark:text-sky-50">
@@ -165,37 +165,37 @@ export default function InputForm() {
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Kwota (PLN):</span>
             <span>{request.amountPln}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Opis:</span>
             <span>{request.description}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Powód:</span>
             <span>{request.reason}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Link:</span>
             <span>
-              <a target="_blank" rel="noopener noreferrer" href={'https://' + request.url}>
+              <u><a target="_blank" rel="noopener noreferrer" href={'https://' + request.url}>
                 {request.url}
-              </a>
+              </a></u>
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Status:</span>
             {user?.role !== 'employee' && (
               <Select value={status as string} disabled={statusUpdating}
                       onValueChange={(newVal) => handleStatusChange(newVal as RequestStatus)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] hover:cursor-pointer">
                   <SelectValue/>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Statusy</SelectLabel>
-                    <SelectItem value="czeka">Oczekujący</SelectItem>
-                    <SelectItem value="potwierdzono">Zatwierdź</SelectItem>
-                    <SelectItem value="odrzucono">Odrzuć</SelectItem>
-                    <SelectItem value="zakupione">Zakupiony</SelectItem>
+                    <SelectItem className='hover:cursor-pointer' value="czeka">Oczekujący</SelectItem>
+                    <SelectItem className='hover:cursor-pointer' value="potwierdzono">Zatwierdź</SelectItem>
+                    <SelectItem className='hover:cursor-pointer' value="odrzucono">Odrzuć</SelectItem>
+                    <SelectItem className='hover:cursor-pointer' value="zakupione">Zakupiony</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>)}
@@ -242,7 +242,7 @@ export default function InputForm() {
           <h3 className="text-xl font-bold mb-3">Komentarze</h3>
 
           <div className="space-y-4 max-h-96 overflow-y-auto border rounded p-4">
-            {notes.length === 0 && <p className="text-gray-500">Brak notatek</p>}
+            {notes.length === 0 && <p className="text-gray-500 text-2xl">Brak notatek</p>}
             {notes.map((note) => (
               <div
                 key={note.id}
@@ -310,7 +310,7 @@ export default function InputForm() {
             ))}
           </div>
 
-          <div className="mb-5 flex flex-col space-y-2">
+          <div className="mb-2 mt-2 flex flex-col space-y-2">
             <textarea
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
@@ -326,19 +326,19 @@ export default function InputForm() {
             <button
               onClick={handleAddNote}
               disabled={submitting}
-              className="bg-yellow-600 font-semibold  text-white px-4 py-2 rounded hover:bg-yellow-700 hover:cursor-pointer disabled:opacity-50 mt-5"
+              className="bg-yellow-500 font-semibold text-slate-950 px-4 py-2 rounded hover:bg-yellow-700 hover:cursor-pointer disabled:opacity-50 mt-5"
             >
               {submitting ? 'Dodawanie...' : 'Dodaj notatkę'}
             </button>
         <button
           onClick={() => router.push('/request/list')}
-          className="bg-gray-300 dark:bg-gray-700 px-4 py-2 font-semibold rounded hover:bg-gray-400 hover:cursor-pointer"
+          className="bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800 px-4 py-2 font-semibold rounded hover:bg-gray-400 hover:cursor-pointer"
         >
           Powrót do listy
         </button>
         {user?.role === 'employee' && request.status === 'czeka' ? <button
           onClick={() => router.push(`/request/edit/${id}`)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 hover:cursor-pointer"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:accent hover:cursor-pointer"
         >
           Edytuj zgłoszenie
         </button> : ''}
