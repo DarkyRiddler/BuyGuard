@@ -6,7 +6,7 @@ import {
   SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { List, User, Users, UserRoundPlus } from 'lucide-react';
+import { List, User, Users, UserRoundPlus, ListPlus } from 'lucide-react';
 import { DarkModeToggle } from '@/components/dark-mode-toggle';
 import AppLogo from '@/public/logo_transparent.png';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ const links = [
   {
     title: 'Dodaj zgłoszenie', // pozniej ogarne conditional rendering
     url: '/request/create',
-    icon: List
+    icon: ListPlus
   },
 
 ];
@@ -46,8 +46,11 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {links.map((link) => (
+              {links.map((link, index) => (
                 <SidebarMenuItem key={link.title}>
+                  {index > 0 && ( //niewyswietlanie linii nad pierwszym itemem
+                  <div className="border-t border-gray-200 dark:border-gray-200/10 my-1" /> //wyswietlanie linii pomiedzy kazdym itemem
+                  )}
                   <SidebarMenuButton className = 'text-xl' asChild>
                     <Link href={link.url}>
                       {link.icon && <link.icon/>}

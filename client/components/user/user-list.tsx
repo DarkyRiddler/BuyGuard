@@ -221,7 +221,7 @@ export default function UserList() {
                             <TableHead>Imię</TableHead>
                             <TableHead>Nazwisko</TableHead>
                             <TableHead>Email</TableHead>
-                            {currentUser?.role === 'admin' && <TableHead>Limit (PLN)</TableHead>}
+                            {currentUser?.role === 'admin' && <TableHead>Limit</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -239,7 +239,7 @@ export default function UserList() {
                                     <TableCell>{user.email}</TableCell>
                                     {currentUser?.role === 'admin' && (
                                         <TableCell>
-                                            {user.managerLimitPln ? `${user.managerLimitPln.toLocaleString()} PLN` : '-'}
+                                            {user.managerLimitPln ? `${user.managerLimitPln.toLocaleString()} zł` : '-'}
                                         </TableCell>
                                     )}
                                     <TableCell>
