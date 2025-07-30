@@ -192,7 +192,7 @@ export default function InputForm() {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Statusy</SelectLabel>
-                    <SelectItem className='hover:cursor-pointer' value="czeka">Oczekujący</SelectItem>
+                    <SelectItem className='hover:cursor-pointer' value="czeka" disabled>Oczekujący</SelectItem>
                     <SelectItem className='hover:cursor-pointer' value="potwierdzono">Zatwierdź</SelectItem>
                     <SelectItem className='hover:cursor-pointer' value="odrzucono">Odrzuć</SelectItem>
                     <SelectItem className='hover:cursor-pointer' value="zakupione">Zakupiony</SelectItem>
