@@ -79,14 +79,14 @@ export default async function Home({ searchParams }: Props) {
             : `Statystyki od ${dateFrom.toLocaleDateString('pl-PL')} do ${dateTo.toLocaleDateString('pl-PL')}`}
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="p-5 rounded-2xl bg-white dark:bg-gray-800 shadow-md w-full max-w-md space-y-4">
+          <Card className="p-5 rounded-2xl bg-white dark:bg-gray-800 shadow-md w-full max-w-md space-y-4 text-2xl">
             <p><strong>Łącznie zgłoszeń:</strong> {stats.total}</p>
             <p><strong>Potwierdzone:</strong> {stats.approved}</p>
             <p><strong>Odrzucone:</strong> {stats.rejected}</p>
             <p><strong>W trakcie:</strong> {stats.pending}</p>
             <p><strong>Zakupione:</strong> {stats.purchased}</p>
-            <p><strong>Średnia wartość zamówień:</strong> {stats.meanAmount.toFixed(2)} PLN</p>
-            <p><strong>Łączna kwota:</strong> {stats.totalAmount.toFixed(2)} PLN</p>
+            <p><strong>Średnia wartość zamówień:</strong> {stats.meanAmount.toLocaleString("pl-PL", {minimumFractionDigits: 2, maximumFractionDigits: 2,})}{" "}PLN</p>
+            <p><strong>Łączna kwota:</strong> {stats.totalAmount.toLocaleString("pl-PL", {minimumFractionDigits: 2, maximumFractionDigits: 2,})}{" "}PLN</p>
           </Card>
           <StatusChart stats={stats}/>
           <AmountChart className="col-span-1 md:col-span-2" requests={request}/>

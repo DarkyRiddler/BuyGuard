@@ -162,8 +162,8 @@ export default function InputForm() {
       <CardContent>
         <div className="space-y-2 w-full text-2xl mb-5">
           <div className="flex justify-between">
-            <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Kwota (PLN):</span>
-            <span>{request.amountPln}</span>
+            <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Kwota:</span>
+            <span>{request.amountPln.toLocaleString() + ' zł'}</span>
           </div>
           <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Opis:</span>
@@ -323,26 +323,26 @@ export default function InputForm() {
       </CardContent>
 
       <CardFooter className="flex flex-col items-center space-y-2">
-            <button
-              onClick={handleAddNote}
-              disabled={submitting}
-              className="bg-yellow-500 font-semibold text-slate-950 px-4 py-2 rounded hover:bg-yellow-700 hover:cursor-pointer disabled:opacity-50 mt-5"
-            >
-              {submitting ? 'Dodawanie...' : 'Dodaj notatkę'}
-            </button>
         <button
-          onClick={() => router.push('/request/list')}
-          className="bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-800 px-4 py-2 font-semibold rounded hover:bg-gray-400 hover:cursor-pointer"
+          onClick={handleAddNote}
+          disabled={submitting}
+          className="bg-yellow-500 font-semibold text-slate-950 px-4 py-2 rounded hover:bg-yellow-700 hover:cursor-pointer disabled:opacity-50 mt-5"
         >
-          Powrót do listy
+          {submitting ? 'Dodawanie...' : 'Dodaj notatkę'}
         </button>
-        {user?.role === 'employee' && request.status === 'czeka' ? <button
+        {user?.role === 'employee' && request.status === 'czeka' ? 
+        <button
           onClick={() => router.push(`/request/edit/${id}`)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:accent hover:cursor-pointer"
+          className="bg-blue-500 text-black px-4 py-2 rounded hover:accent bg-yellow-500 font-semibold text-slate-950 rounded hover:bg-yellow-700 hover:cursor-pointer disabled:opacity-50"
         >
           Edytuj zgłoszenie
         </button> : ''}
-
+        <button
+          onClick={() => router.push('/request/list')}
+          className="bg-gray-300 dark:bg-gray-800 dark:hover:bg-neutral-950 px-4 py-2 font-semibold rounded hover:bg-gray-400 hover:cursor-pointer"
+        >
+          Powrót do listy
+        </button>
       </CardFooter>
     </Card>
   );
