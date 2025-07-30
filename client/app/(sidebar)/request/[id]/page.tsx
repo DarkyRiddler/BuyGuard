@@ -183,7 +183,7 @@ export default function InputForm() {
           </div>
           <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Status:</span>
-            {user?.role !== 'employee' && (
+            {user?.role !== 'employee' ? (
               <Select value={status as string} disabled={statusUpdating}
                       onValueChange={(newVal) => handleStatusChange(newVal as RequestStatus)}>
                 <SelectTrigger className="w-[180px] hover:cursor-pointer">
@@ -198,7 +198,10 @@ export default function InputForm() {
                     <SelectItem className='hover:cursor-pointer' value="zakupione">Zakupiony</SelectItem>
                   </SelectGroup>
                 </SelectContent>
-              </Select>)}
+              </Select>):
+              (
+                <span>{request.status}</span>
+              )}
           </div>
           {request.attachments && request.attachments.length > 0 && (
             <div className="mt-6">
