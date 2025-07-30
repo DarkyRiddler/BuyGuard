@@ -163,7 +163,7 @@ export default function FiltrationCard() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="searchName">Szukaj po nazwie</Label>
+            <Label htmlFor="searchName">Szukaj po pracowniku</Label>
             <Input
               id="searchName"
               type="text"
