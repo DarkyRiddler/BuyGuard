@@ -27,7 +27,7 @@ export function DateFilterForm() {
       <DatePicker value={dateFrom} onChange={setDateFrom} label="Data od" />
       <DatePicker value={dateTo} onChange={setDateTo} label="Data do" />
       <Button type="submit" className="self-end">Filtruj</Button>
-      <Button type="button" variant="secondary" className="self-end" onClick={() => {
+      <Button type="button" variant="secondary" className="self-end hover:cursor-pointer" onClick={() => {
         setDateFrom('');
         setDateTo('');
         router.push('/');

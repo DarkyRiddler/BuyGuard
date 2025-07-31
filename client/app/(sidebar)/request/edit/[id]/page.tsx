@@ -246,7 +246,7 @@ export default function InputForm() {
               attachmentsRef.current = files;
             }}
           />
-          <Card className="mt-4">
+          <Card className="">
             <CardHeader>
               <FormLabel>Pliki dołączone</FormLabel>
             </CardHeader>
