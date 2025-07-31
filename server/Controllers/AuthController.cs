@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 using server.DTOs.LoginRequest;
 using server.Data;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
 
 
 [ApiController]
@@ -26,7 +27,24 @@ public class AuthController : ControllerBase
         this._config = config;
     }
 
+    /// <summary>
+    /// Loguje użytkownika do systemu.
+    /// </summary>
+    /// <remarks>
+    /// Weryfikuje dane logowania użytkownika i tworzy token JWT.
+    /// Token jest zwracany jako bezpieczne ciasteczko HTTP-only z czasem wygaśnięcia 1 godzina.
+    /// Sprawdza czy konto nie zostało usunięte.
+    /// </remarks>
+    /// <param name="request">Dane logowania zawierające email i hasło</param>
+    /// <returns>Komunikat potwierdzający logowanie</returns>
+    /// <response code="200">Użytkownik został zalogowany pomyślnie</response>
+    /// <response code="401">Nieprawidłowy email lub hasło, lub konto zostało usunięte</response>
     [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [SwaggerOperation(
+        Summary = "Zaloguj użytkownika", 
+        Description = "Weryfikuje dane logowania i tworzy token JWT przechowywany w bezpiecznym ciasteczku.")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var user = await _db.User
@@ -88,8 +106,38 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    /// <summary>
+    /// Zmienia hasło aktualnie zalogowanego użytkownika.
+    /// </summary>
+    /// <remarks>
+    /// Pozwala na zmianę hasła po weryfikacji aktualnego hasła.
+    /// Nowe hasło musi spełniać wymagania bezpieczeństwa:
+    /// - minimum 6 znaków
+    /// - co najmniej jedna wielka litera
+    /// - co najmniej jedna mała litera
+    /// - co najmniej jedna cyfra
+    /// - co najmniej jeden znak specjalny
+    /// 
+    /// Ograniczenie rate limiting: maksymalnie 5 prób na 15 minut na IP/użytkownika.
+    /// </remarks>
+    /// <param name="request">Dane zawierające aktualne hasło, nowe hasło i potwierdzenie nowego hasła</param>
+    /// <returns>Komunikat potwierdzający zmianę hasła</returns>
+    /// <response code="200">Hasło zostało zmienione pomyślnie</response>
+    /// <response code="400">Nieprawidłowe dane (złe aktualne hasło, niezgodne nowe hasła, słabe hasło)</response>
+    /// <response code="401">Brak autoryzacji lub konto zostało usunięte</response>
+    /// <response code="429">Przekroczono limit prób zmiany hasła (5 prób na 15 minut)</response>
+    /// <response code="500">Błąd wewnętrzny serwera</response>
     [HttpPatch("change-password")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [SwaggerOperation(
+        Summary = "Zmień hasło użytkownika", 
+        Description = "Zmienia hasło zalogowanego użytkownika z walidacją siły hasła i rate limiting.")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
         try
@@ -148,6 +196,7 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { success = false, error = "Internal server error!!" });
         }
     }
+
     private (bool IsValid, string ErrorMessage) ValidatePasswordStrength(string password)
     {
         if (string.IsNullOrEmpty(password))
@@ -209,7 +258,21 @@ public class AuthController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Wylogowuje użytkownika z systemu.
+    /// </summary>
+    /// <remarks>
+    /// Usuwa token JWT poprzez wyczyszczenie ciasteczka z tokenem.
+    /// Ustawia datę wygaśnięcia ciasteczka na przeszłość, co powoduje jego usunięcie przez przeglądarkę.
+    /// Nie wymaga autoryzacji - można wylogować się nawet z nieważnym tokenem.
+    /// </remarks>
+    /// <returns>Komunikat potwierdzający wylogowanie</returns>
+    /// <response code="200">Użytkownik został wylogowany pomyślnie</response>
     [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [SwaggerOperation(
+        Summary = "Wyloguj użytkownika", 
+        Description = "Usuwa token JWT poprzez wyczyszczenie ciasteczka. Nie wymaga autoryzacji.")]
     public IActionResult Logout()
     {
         Response.Cookies.Append("jwt", "", new CookieOptions

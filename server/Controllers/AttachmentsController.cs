@@ -5,7 +5,7 @@ using server.DTOs.Request;
 using server.Data;
 using server.Models;
 using Microsoft.EntityFrameworkCore;
-
+using Swashbuckle.AspNetCore.Annotations;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
@@ -17,7 +17,22 @@ public class AttachmentsController : ControllerBase
     {
         _db = db;
     }
-
+    /// <summary>
+    /// Dodaje załącznik do zgłoszenia.
+    /// </summary>
+    /// <param name="requestId">Identyfikator zgłoszenia</param>
+    /// <param name="file">Plik do załączenia</param>
+    /// <response code="200">Załącznik został dodany</response>
+    /// <response code="400">Błąd walidacji pliku</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak uprawnień</response>
+    /// <response code="404">Nie znaleziono zgłoszenia</response>
+    [SwaggerOperation(Summary = "Dodaje załącznik do zgłoszenia", Description = "Wymaga roli 'employee' oraz bycie właścicielem zgłoszenia.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpPost("requests/{requestId}/attachment")]
     public async Task<IActionResult> UploadAttachment(int requestId, IFormFile file)
     {
@@ -68,7 +83,21 @@ public class AttachmentsController : ControllerBase
 
         return Ok(new { message = "Załącznik dodany", url = attachment.FileUrl });
     }
-
+    
+ 
+    /// <summary>
+    /// Pobiera listę załączników powiązanych ze zgłoszeniem.
+    /// </summary>
+    /// <param name="requestId">Identyfikator zgłoszenia</param>
+    /// <response code="200">Zwraca listę załączników</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak dostępu</response>
+    /// <response code="404">Nie znaleziono zgłoszenia</response>
+    [SwaggerOperation(Summary = "Pobiera listę załączników", Description = "Zwraca listę załączników dostępnych dla właściciela, managera lub admina.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("requests/{requestId}/attachment")]
     public async Task<IActionResult> GetRequestAttachments(int requestId)
     {
@@ -98,6 +127,22 @@ public class AttachmentsController : ControllerBase
 
         return Ok(attachments);
     }
+
+    /// <summary>
+    /// Usuwa załącznik.
+    /// </summary>
+    /// <param name="attachmentId">Identyfikator załącznika</param>
+    /// <response code="200">Załącznik został usunięty</response>
+    /// <response code="400">Brak powiązania załącznika</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak dostępu</response>
+    /// <response code="404">Załącznik lub plik nie istnieje</response>
+    [SwaggerOperation(Summary = "Usuwa załącznik", Description = "Pozwala usunąć plik, jeśli użytkownik jest adminem lub właścicielem zgłoszenia.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpDelete("{attachmentId}")]
     public async Task<IActionResult> DeleteAttachment(int attachmentId)
     {
@@ -137,11 +182,15 @@ public class AttachmentsController : ControllerBase
     /// Pobiera plik załącznika powiązanego ze zgłoszeniem.
     /// </summary>
     /// <param name="attachmentId">Identyfikator załącznika</param>
-    /// <returns>Plik binarny jako odpowiedź</returns>
     /// <response code="200">Zwraca plik jako strumień</response>
     /// <response code="401">Brak autoryzacji</response>
     /// <response code="403">Brak dostępu do pliku</response>
     /// <response code="404">Załącznik nie istnieje lub brak pliku fizycznego</response>
+    [SwaggerOperation(Summary = "Pobiera zawartość pliku załącznika", Description = "Zwraca binarny plik jako strumień danych.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{attachmentId}/download")]
     public async Task<IActionResult> DownloadAttachment(int attachmentId)
     {

@@ -17,7 +17,15 @@ public class AIController : ControllerBase
         _db = db;
         _aiService = aiService;
     }
-
+    /// <summary>
+    /// Generuje brakujące wartości AI Score dla zgłoszeń bez wyniku.
+    /// </summary>
+    /// <remarks>
+    /// Operacja dostępna tylko dla użytkowników z rolą admin.
+    /// </remarks>
+    /// <response code="200">Sukces — wygenerowano brakujące AI scores</response>
+    /// <response code="403">Brak uprawnień — tylko admin może wykonać tę operację</response>
+    /// <response code="400">Błąd generowania wyników</response>
     [HttpPost("generate-missing-scores")]
     public async Task<IActionResult> GenerateMissingAIScores()
     {

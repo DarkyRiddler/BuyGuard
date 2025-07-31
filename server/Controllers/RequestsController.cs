@@ -6,6 +6,7 @@ using server.Data;
 using server.Models;
 using server.Services;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
 
 [Authorize]
 [ApiController]
@@ -23,7 +24,35 @@ public class RequestsController : ControllerBase
         this._mailerService = mailerService;
     }
 
+    /// <summary>
+    /// Pobiera listę zgłoszeń z paginacją i filtrowaniem.
+    /// </summary>
+    /// <remarks>
+    /// Zwraca paginowaną listę zgłoszeń z możliwością filtrowania, sortowania i wyszukiwania.
+    /// Zakres danych zależy od roli użytkownika:
+    /// - admin: wszystkie zgłoszenia
+    /// - manager: zgłoszenia przypisane do managera
+    /// - employee: zgłoszenia utworzone przez pracownika
+    /// </remarks>
+    /// <param name="page">Numer strony (domyślnie 1)</param>
+    /// <param name="pageSize">Liczba elementów na stronie (domyślnie 10)</param>
+    /// <param name="status">Status zgłoszenia (opcjonalnie)</param>
+    /// <param name="minAmount">Minimalna kwota zgłoszenia (opcjonalnie)</param>
+    /// <param name="maxAmount">Maksymalna kwota zgłoszenia (opcjonalnie)</param>
+    /// <param name="dateFrom">Data utworzenia od (opcjonalnie)</param>
+    /// <param name="dateTo">Data utworzenia do (opcjonalnie)</param>
+    /// <param name="searchName">Imię, nazwisko lub email użytkownika (opcjonalnie)</param>
+    /// <param name="sortBy">Pole do sortowania (amount, createdAt, status, username, aiScore)</param>
+    /// <param name="sortOrder">Kierunek sortowania (asc lub desc)</param>
+    /// <returns>Paginowana lista zgłoszeń z metadanymi</returns>
+    /// <response code="200">Lista zgłoszeń została pobrana</response>
+    /// <response code="401">Brak autoryzacji</response>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [SwaggerOperation(
+        Summary = "Pobierz listę zgłoszeń",
+        Description = "Pobiera paginowaną listę zgłoszeń z opcjami filtrowania, sortowania i wyszukiwania.")]
     public async Task<IActionResult> GetRequests(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
@@ -174,8 +203,32 @@ public class RequestsController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Pobiera szczegóły konkretnego zgłoszenia.
+    /// </summary>
+    /// <remarks>
+    /// Zwraca pełne informacje o zgłoszeniu wraz z załącznikami i notatkami.
+    /// Dostęp mają tylko:
+    /// - admin: do wszystkich zgłoszeń
+    /// - właściciel zgłoszenia
+    /// - przypisany manager
+    /// </remarks>
+    /// <param name="id">Identyfikator zgłoszenia</param>
+    /// <returns>Szczegóły zgłoszenia wraz z załącznikami i notatkami</returns>
+    /// <response code="200">Zgłoszenie zostało znalezione</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak dostępu do zgłoszenia</response>
+    /// <response code="404">Zgłoszenie nie zostało znalezione</response>
     [Authorize]
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerOperation(
+    Summary = "Pobierz szczegóły zgłoszenia",
+    Description = "Pobiera pełne informacje o zgłoszeniu wraz z załącznikami, notatkami i danymi użytkowników.")]
+
     public async Task<IActionResult> GetSpecificRequest(int id)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -226,7 +279,28 @@ public class RequestsController : ControllerBase
         });
     }
 
+    // <summary>
+    /// Tworzy nowe zgłoszenie.
+    /// </summary>
+    /// <remarks>
+    /// Tworzy nowe zgłoszenie i automatycznie przypisuje je do odpowiedniego managera na podstawie kwoty.
+    /// Dostępne tylko dla pracowników (rola: employee).
+    /// Wysyła powiadomienie email do przypisanego managera i generuje AI score.
+    /// </remarks>
+    /// <param name="request">Dane nowego zgłoszenia</param>
+    /// <returns>Informacja o utworzonym zgłoszeniu</returns>
+    /// <response code="200">Zgłoszenie zostało utworzone</response>
+    /// <response code="400">Błędne dane lub brak dostępnego administratora</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Tylko pracownicy mogą składać wnioski</response>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [SwaggerOperation(
+        Summary = "Utwórz nowe zgłoszenie",
+        Description = "Tworzy nowe zgłoszenie z automatycznym przypisaniem managera i generowaniem AI score.")]
     public async Task<IActionResult> CreateRequest([FromBody] CreateRequest request)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -307,7 +381,31 @@ public class RequestsController : ControllerBase
 
         return Ok(new { success = true, requestId = newRequest.Id });
     }
+    /// <summary>
+    /// Aktualizuje istniejące zgłoszenie.
+    /// </summary>
+    /// <remarks>
+    /// Pozwala na edycję zgłoszenia przez jego właściciela.
+    /// Można edytować tylko zgłoszenia o statusie "czeka".
+    /// Po aktualizacji regeneruje AI score.
+    /// </remarks>
+    /// <param name="id">Identyfikator zgłoszenia</param>
+    /// <param name="updateDto">Dane do aktualizacji</param>
+    /// <returns>Zaktualizowane dane zgłoszenia</returns>
+    /// <response code="200">Zgłoszenie zostało zaktualizowane</response>
+    /// <response code="400">Błędne dane lub nieprawidłowy status zgłoszenia</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak uprawnień do edycji</response>
+    /// <response code="404">Zgłoszenie nie zostało znalezione</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerOperation(
+        Summary = "Aktualizuj zgłoszenie",
+        Description = "Aktualizuje dane zgłoszenia o statusie 'czeka' i regeneruje AI score.")]
     public async Task<IActionResult> UpdateRequestAsync(int id, [FromBody] UpdateRequest updateDto)
 
     {
@@ -374,24 +472,32 @@ public class RequestsController : ControllerBase
         return Ok(updatedRequest);
     }
 
-    // private string GetMimeTypeFromUrl(string url)
-    // {
-    //     var extension = Path.GetExtension(url).ToLowerInvariant();
-    //     return extension switch
-    //     {
-    //         ".pdf" => "application/pdf",
-    //         ".jpg" => "image/jpeg",
-    //         ".jpeg" => "image/jpeg",
-    //         ".png" => "image/png",
-    //         ".doc" => "application/msword",
-    //         ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    //         ".xls" => "application/vnd.ms-excel",
-    //         ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    //         ".txt" => "text/plain",
-    //         _ => "application/octet-stream"
-    //     };
-    // }
+    /// <summary>
+    /// Zmienia status zgłoszenia.
+    /// </summary>
+    /// <remarks>
+    /// Pozwala na zmianę statusu zgłoszenia przez managera lub administratora.
+    /// Dostępne statusy: potwierdzono, odrzucono, zakupione.
+    /// Nie można zmieniać statusu zakończonych zgłoszeń (odrzucono, zakupione).
+    /// Wysyła powiadomienie email do właściciela zgłoszenia.
+    /// </remarks>
+    /// <param name="id">Identyfikator zgłoszenia</param>
+    /// <param name="statusDto">Nowy status i opcjonalny powód zmiany</param>
+    /// <returns>Informacja o zmianie statusu</returns>
+    /// <response code="200">Status został zmieniony</response>
+    /// <response code="400">Nieprawidłowy status lub próba zmiany zakończonego zgłoszenia</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak uprawnień do zmiany statusu</response>
+    /// <response code="404">Zgłoszenie nie zostało znalezione</response>
     [HttpPatch("{id}/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerOperation(
+        Summary = "Zmień status zgłoszenia",
+        Description = "Zmienia status zgłoszenia i wysyła powiadomienia email do zainteresowanych stron.")]
     public async Task<IActionResult> UpdateRequestStatusAsync(int id, [FromBody] UpdateRequestStatusDTO statusDto)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -493,7 +599,30 @@ public class RequestsController : ControllerBase
         });
     }
 
-	  [HttpPost("{id}/regenerate-ai-score")]
+    /// <summary>
+    /// Regeneruje AI score dla zgłoszenia.
+    /// </summary>
+    /// <remarks>
+    /// Ponownie generuje AI score dla określonego zgłoszenia.
+    /// Dostępne dla administratorów i managerów.
+    /// Manager może regenerować score tylko dla przypisanych do siebie zgłoszeń.
+    /// </remarks>
+    /// <param name="id">Identyfikator zgłoszenia</param>
+    /// <returns>Informacja o regeneracji AI score</returns>
+    /// <response code="200">AI score został wygenerowany ponownie</response>
+    /// <response code="400">Błąd podczas generowania AI score</response>
+    /// <response code="401">Brak autoryzacji</response>
+    /// <response code="403">Brak uprawnień do regeneracji AI score</response>
+    /// <response code="404">Zgłoszenie nie zostało znalezione</response>
+    [HttpPost("{id}/regenerate-ai-score")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [SwaggerOperation(
+        Summary = "Regeneruj AI score",
+        Description = "Ponownie generuje AI score dla zgłoszenia z użyciem sztucznej inteligencji.")]
     public async Task<IActionResult> RegenerateAIScore(int id)
     {
         var clientIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
