@@ -14,6 +14,7 @@ import {
 import { toast } from 'sonner';
 import { isAxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 type DeleteButtonProps = {
   userId: number;
@@ -21,12 +22,14 @@ type DeleteButtonProps = {
 
 export default function DeleteButton({ userId }: DeleteButtonProps) {
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false); //stan okna
   
   async function handleDelete() {
     try {
       await axios.delete(`api/Users/${userId}`,);
       toast.success('Usunięto użytkownika pomyślnie');
-      setTimeout(() => router.refresh(), 1000); // nie działa idk
+      setTimeout(() => router.refresh(), 1000); // nie działa idk //:(
+      setIsOpen(false); //stan okna zmienia sie na zamkniete
     } catch (error) {
       if (isAxiosError(error)) {
         if (isAxiosError(error)) {
@@ -40,7 +43,7 @@ export default function DeleteButton({ userId }: DeleteButtonProps) {
   }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="w-full text-slate-200 bg-red-700 hover:bg-red-300">
           Usuń
