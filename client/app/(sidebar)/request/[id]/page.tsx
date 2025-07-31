@@ -128,6 +128,12 @@ export default function InputForm() {
     }
   };
 
+  const formatUrl = (url:string) => {
+    if(!url) return '';
+    if(url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  }
+
   if (loading) return <p>Ładowanie...</p>;
   if (!request) return <p>Brak danych.</p>;
 
@@ -176,14 +182,14 @@ export default function InputForm() {
           <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Link:</span>
             <span>
-              <u><a target="_blank" rel="noopener noreferrer" href={'https://' + request.url}>
+              <u><a target="_blank" rel="noopener noreferrer" href={formatUrl(request.url)}>
                 {request.url}
               </a></u>
             </span>
           </div>
           <div className="flex justify-between border-t border-gray-200 dark:border-gray-200/10 my-2">
             <span className="font-semibold bg-slate-950/10 dark:bg-sky-50/17 text-slate-950 dark:text-sky-50">Status:</span>
-            {user?.role !== 'employee' && (
+            {user?.role !== 'employee' ? (
               <Select value={status as string} disabled={statusUpdating}
                       onValueChange={(newVal) => handleStatusChange(newVal as RequestStatus)}>
                 <SelectTrigger className="w-[180px] hover:cursor-pointer">
@@ -192,13 +198,16 @@ export default function InputForm() {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Statusy</SelectLabel>
-                    <SelectItem className='hover:cursor-pointer' value="czeka">Oczekujący</SelectItem>
+                    <SelectItem className='hover:cursor-pointer' value="czeka" disabled>Oczekujący</SelectItem>
                     <SelectItem className='hover:cursor-pointer' value="potwierdzono">Zatwierdź</SelectItem>
                     <SelectItem className='hover:cursor-pointer' value="odrzucono">Odrzuć</SelectItem>
                     <SelectItem className='hover:cursor-pointer' value="zakupione">Zakupiony</SelectItem>
                   </SelectGroup>
                 </SelectContent>
-              </Select>)}
+              </Select>):
+              (
+                <span>{request.status}</span>
+              )}
           </div>
           {request.attachments && request.attachments.length > 0 && (
             <div className="mt-6">
